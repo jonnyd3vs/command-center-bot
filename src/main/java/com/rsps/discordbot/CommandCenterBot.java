@@ -56,6 +56,9 @@ public class CommandCenterBot {
             // Register slash commands
             registerSlashCommands();
 
+            // Update command list channel
+            updateCommandListChannel();
+
             System.out.println("RSPS Command Center Bot is ready!");
 
         } catch (Exception e) {
@@ -91,6 +94,70 @@ public class CommandCenterBot {
                 success -> System.out.println("Successfully registered " + commandDataList.size() + " commands to guild " + guildId),
                 error -> System.err.println("Failed to register commands: " + error.getMessage())
         );
+    }
+
+    /**
+     * Update the command list channel with current commands
+     */
+    private static void updateCommandListChannel() {
+        String commandListChannelId = "1433770020537896960";
+        net.dv8tion.jda.api.entities.channel.concrete.TextChannel channel = jda.getTextChannelById(commandListChannelId);
+
+        if (channel == null) {
+            System.err.println("Command list channel not found: " + commandListChannelId);
+            return;
+        }
+
+        System.out.println("Updating command list channel...");
+
+        // Delete all messages in the channel
+        channel.getIterableHistory().queue(messages -> {
+            if (!messages.isEmpty()) {
+                channel.purgeMessages(messages);
+                System.out.println("Cleared " + messages.size() + " messages from command list channel");
+            }
+
+            // Build command list embed
+            net.dv8tion.jda.api.EmbedBuilder embed = new net.dv8tion.jda.api.EmbedBuilder()
+                    .setTitle("Available Commands")
+                    .setDescription("List of all available bot commands")
+                    .setColor(java.awt.Color.BLUE)
+                    .setTimestamp(java.time.Instant.now());
+
+            // Add each command as a field
+            for (Command command : commandManager.getCommands().values()) {
+                net.dv8tion.jda.api.interactions.commands.build.CommandData cmdData = command.getCommandData();
+
+                // Cast to SlashCommandData to access description and options
+                if (cmdData instanceof net.dv8tion.jda.api.interactions.commands.build.SlashCommandData) {
+                    net.dv8tion.jda.api.interactions.commands.build.SlashCommandData slashCmd =
+                        (net.dv8tion.jda.api.interactions.commands.build.SlashCommandData) cmdData;
+
+                    StringBuilder description = new StringBuilder(slashCmd.getDescription());
+
+                    // Add options/parameters to description
+                    if (!slashCmd.getOptions().isEmpty()) {
+                        description.append("\n**Parameters:**");
+                        for (net.dv8tion.jda.api.interactions.commands.build.OptionData option : slashCmd.getOptions()) {
+                            description.append("\n• `").append(option.getName()).append("`: ").append(option.getDescription());
+                            if (option.isRequired()) {
+                                description.append(" *(required)*");
+                            }
+                        }
+                    }
+
+                    embed.addField("/" + slashCmd.getName(), description.toString(), false);
+                }
+            }
+
+            embed.setFooter("Bot restarted at " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+            // Send the embed
+            channel.sendMessageEmbeds(embed.build()).queue(
+                    success -> System.out.println("Command list updated successfully"),
+                    error -> System.err.println("Failed to update command list: " + error.getMessage())
+            );
+        });
     }
 
     /**

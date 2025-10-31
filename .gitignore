@@ -59,7 +59,12 @@ complete_setup.py
 deploy_bot.py
 upload_project.py
 add_deploy_key.py
+add_github_deploy_key.py
 yes.txt
+
+# SSH and deployment documentation (contains passwords)
+SSH_CONNECTION_INFO.md
+rebase-script.sh
 
 # Configuration files
 config.properties
