@@ -2,6 +2,7 @@ package com.rsps.discordbot.commands;
 
 import com.rsps.discordbot.client.GameServerClient;
 import com.rsps.discordbot.config.BotConfig;
+import com.rsps.discordbot.config.ChannelMapper;
 import com.rsps.discordbot.config.ServerConfig;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -25,10 +26,9 @@ public class GiveOffersCommand implements Command {
     @Override
     public CommandData getCommandData() {
         return Commands.slash("giveoffers", "Give special offers to a player")
-                .addOption(OptionType.STRING, "server", "The server name (e.g., VoidX, Kingdom)", true)
-                .addOption(OptionType.STRING, "player", "The player name", true)
-                .addOption(OptionType.STRING, "offertype", "The type of offer", false)
-                .addOption(OptionType.STRING, "offerdata", "Additional offer data", false);
+                .addOption(OptionType.STRING, "player", "The username of the player who will receive the offers", true)
+                .addOption(OptionType.STRING, "offertype", "The type of special offer to grant (e.g., starter pack, bonus rewards)", false)
+                .addOption(OptionType.STRING, "offerdata", "Additional data or parameters for the offer (JSON format if applicable)", false);
     }
 
     @Override
@@ -36,17 +36,20 @@ public class GiveOffersCommand implements Command {
         // Defer reply to prevent timeout
         event.deferReply().queue();
 
-        String serverName = event.getOption("server").getAsString();
+        // Get channel ID to determine which server
+        String channelId = event.getChannel().getId();
+        ServerConfig serverConfig = ChannelMapper.getServerForChannel(channelId);
+
+        if (serverConfig == null) {
+            event.getHook().sendMessageEmbeds(createErrorEmbed(
+                "This command can only be used in server-specific channels (Fantasy, Vale, or Azerite)."
+            )).queue();
+            return;
+        }
+
         String playerName = event.getOption("player").getAsString();
         String offerType = event.getOption("offertype") != null ? event.getOption("offertype").getAsString() : "";
         String offerData = event.getOption("offerdata") != null ? event.getOption("offerdata").getAsString() : "";
-
-        // Get server config
-        ServerConfig serverConfig = ServerConfig.getServerByName(serverName);
-        if (serverConfig == null) {
-            event.getHook().sendMessageEmbeds(createErrorEmbed("Server not found: " + serverName)).queue();
-            return;
-        }
 
         // Create client and execute command
         GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());

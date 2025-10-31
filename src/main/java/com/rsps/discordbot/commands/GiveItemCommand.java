@@ -2,6 +2,7 @@ package com.rsps.discordbot.commands;
 
 import com.rsps.discordbot.client.GameServerClient;
 import com.rsps.discordbot.config.BotConfig;
+import com.rsps.discordbot.config.ChannelMapper;
 import com.rsps.discordbot.config.ServerConfig;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -25,10 +26,9 @@ public class GiveItemCommand implements Command {
     @Override
     public CommandData getCommandData() {
         return Commands.slash("giveitem", "Give an item to a player")
-                .addOption(OptionType.STRING, "server", "The server name (e.g., VoidX, Kingdom)", true)
-                .addOption(OptionType.STRING, "player", "The player name", true)
-                .addOption(OptionType.INTEGER, "itemid", "The item ID", true)
-                .addOption(OptionType.INTEGER, "amount", "The amount", true);
+                .addOption(OptionType.STRING, "player", "The username of the player who will receive the item", true)
+                .addOption(OptionType.INTEGER, "itemid", "The item ID number (e.g., 995 for coins)", true)
+                .addOption(OptionType.INTEGER, "amount", "The quantity of items to give (must be positive)", true);
     }
 
     @Override
@@ -36,7 +36,17 @@ public class GiveItemCommand implements Command {
         // Defer reply to prevent timeout
         event.deferReply().queue();
 
-        String serverName = event.getOption("server").getAsString();
+        // Get channel ID to determine which server
+        String channelId = event.getChannel().getId();
+        ServerConfig serverConfig = ChannelMapper.getServerForChannel(channelId);
+
+        if (serverConfig == null) {
+            event.getHook().sendMessageEmbeds(createErrorEmbed(
+                "This command can only be used in server-specific channels (Fantasy, Vale, or Azerite)."
+            )).queue();
+            return;
+        }
+
         String playerName = event.getOption("player").getAsString();
         int itemId = event.getOption("itemid").getAsInt();
         int amount = event.getOption("amount").getAsInt();
@@ -44,13 +54,6 @@ public class GiveItemCommand implements Command {
         // Validate input
         if (amount <= 0) {
             event.getHook().sendMessageEmbeds(createErrorEmbed("Amount must be greater than 0")).queue();
-            return;
-        }
-
-        // Get server config
-        ServerConfig serverConfig = ServerConfig.getServerByName(serverName);
-        if (serverConfig == null) {
-            event.getHook().sendMessageEmbeds(createErrorEmbed("Server not found: " + serverName)).queue();
             return;
         }
 

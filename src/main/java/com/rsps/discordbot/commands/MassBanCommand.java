@@ -2,6 +2,7 @@ package com.rsps.discordbot.commands;
 
 import com.rsps.discordbot.client.GameServerClient;
 import com.rsps.discordbot.config.BotConfig;
+import com.rsps.discordbot.config.ChannelMapper;
 import com.rsps.discordbot.config.ServerConfig;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -25,8 +26,7 @@ public class MassBanCommand implements Command {
     @Override
     public CommandData getCommandData() {
         return Commands.slash("massban", "Ban a player and their associated accounts")
-                .addOption(OptionType.STRING, "server", "The server name (e.g., VoidX, Kingdom)", true)
-                .addOption(OptionType.STRING, "player", "The player name", true);
+                .addOption(OptionType.STRING, "player", "The username of the player to ban (includes all alt accounts)", true);
     }
 
     @Override
@@ -34,15 +34,18 @@ public class MassBanCommand implements Command {
         // Defer reply to prevent timeout
         event.deferReply().queue();
 
-        String serverName = event.getOption("server").getAsString();
-        String playerName = event.getOption("player").getAsString();
+        // Get channel ID to determine which server
+        String channelId = event.getChannel().getId();
+        ServerConfig serverConfig = ChannelMapper.getServerForChannel(channelId);
 
-        // Get server config
-        ServerConfig serverConfig = ServerConfig.getServerByName(serverName);
         if (serverConfig == null) {
-            event.getHook().sendMessageEmbeds(createErrorEmbed("Server not found: " + serverName)).queue();
+            event.getHook().sendMessageEmbeds(createErrorEmbed(
+                "This command can only be used in server-specific channels (Fantasy, Vale, or Azerite)."
+            )).queue();
             return;
         }
+
+        String playerName = event.getOption("player").getAsString();
 
         // Create client and execute command
         GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
