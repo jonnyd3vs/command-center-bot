@@ -66,11 +66,8 @@ public class CommandCenterBot {
             // Add command manager as event listener
             jda.addEventListener(commandManager);
 
-            // Register slash commands
+            // Register slash commands (this will also update the command list channel)
             registerSlashCommands();
-
-            // Update command list channel
-            updateCommandListChannel();
 
             System.out.println("RSPS Command Center Bot is ready!");
 
@@ -96,7 +93,7 @@ public class CommandCenterBot {
      * Register all slash commands with Discord
      */
     private static void registerSlashCommands() {
-        System.out.println("Registering slash commands...");
+        System.out.println("Clearing old commands and registering new slash commands...");
 
         List<net.dv8tion.jda.api.interactions.commands.build.CommandData> commandDataList = new ArrayList<>();
 
@@ -104,10 +101,21 @@ public class CommandCenterBot {
             commandDataList.add(command.getCommandData());
         }
 
-        // Register commands to specific guild for instant updates
         String guildId = "1433696315602243748";
+
+        // Clear all global commands first
+        jda.updateCommands().queue(
+                success -> System.out.println("Cleared global commands"),
+                error -> System.err.println("Failed to clear global commands: " + error.getMessage())
+        );
+
+        // Clear guild commands and register new ones
         jda.getGuildById(guildId).updateCommands().addCommands(commandDataList).queue(
-                success -> System.out.println("Successfully registered " + commandDataList.size() + " commands to guild " + guildId),
+                success -> {
+                    System.out.println("Successfully registered " + commandDataList.size() + " commands to guild " + guildId);
+                    // Update command list channel after commands are registered
+                    updateCommandListChannel();
+                },
                 error -> System.err.println("Failed to register commands: " + error.getMessage())
         );
     }
@@ -116,15 +124,23 @@ public class CommandCenterBot {
      * Update the command list channel with current commands
      */
     private static void updateCommandListChannel() {
-        String commandListChannelId = "1433770020537896960";
-        net.dv8tion.jda.api.entities.channel.concrete.TextChannel channel = jda.getTextChannelById(commandListChannelId);
+        // Add a small delay to ensure commands are fully registered
+        new Thread(() -> {
+            try {
+                Thread.sleep(2000); // Wait 2 seconds for commands to be fully registered
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
-        if (channel == null) {
-            System.err.println("Command list channel not found: " + commandListChannelId);
-            return;
-        }
+            String commandListChannelId = "1433770020537896960";
+            net.dv8tion.jda.api.entities.channel.concrete.TextChannel channel = jda.getTextChannelById(commandListChannelId);
 
-        System.out.println("Updating command list channel...");
+            if (channel == null) {
+                System.err.println("Command list channel not found: " + commandListChannelId);
+                return;
+            }
+
+            System.out.println("Updating command list channel...");
 
         // Delete all messages in the channel
         channel.getIterableHistory().queue(messages -> {
@@ -174,6 +190,7 @@ public class CommandCenterBot {
                     error -> System.err.println("Failed to update command list: " + error.getMessage())
             );
         });
+        }).start(); // Start the delayed update thread
     }
 
     /**
