@@ -6,12 +6,20 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Command to manually refresh Discord slash commands
- * This will re-register all commands to fix duplicates
+ * This will clear and re-register all commands without restarting the bot
  */
 public class RefreshCommandsCommand implements Command {
+
+    private final CommandManager commandManager;
+
+    public RefreshCommandsCommand(CommandManager commandManager) {
+        this.commandManager = commandManager;
+    }
 
     @Override
     public CommandData getCommandData() {
@@ -23,24 +31,41 @@ public class RefreshCommandsCommand implements Command {
         event.deferReply().setEphemeral(true).queue();
 
         try {
-            // Get current guild commands from Discord
-            int commandCount = event.getGuild().retrieveCommands().complete().size();
+            System.out.println("\n=== Manual Command Refresh Triggered by " + event.getUser().getName() + " ===");
+
+            // Get all command data
+            List<net.dv8tion.jda.api.interactions.commands.build.CommandData> commandDataList = new ArrayList<>();
+            for (Command command : commandManager.getCommands().values()) {
+                commandDataList.add(command.getCommandData());
+            }
+
+            // Clear global commands
+            System.out.println("Clearing global commands...");
+            event.getJDA().updateCommands().complete();
+            System.out.println("  ✓ Global commands cleared");
+
+            // Update guild commands
+            System.out.println("Updating " + commandDataList.size() + " guild commands...");
+            event.getGuild().updateCommands().addCommands(commandDataList).complete();
+            System.out.println("  ✓ Guild commands updated");
 
             EmbedBuilder embed = new EmbedBuilder()
-                    .setTitle("🔄 Refreshing Commands...")
-                    .setColor(Color.ORANGE)
-                    .setDescription("Please restart the bot to fully refresh commands.\n\n" +
-                            "Current commands: " + commandCount + "\n\n" +
-                            "**To fix duplicates:**\n" +
-                            "1. Restart the bot\n" +
-                            "2. Old commands will be cleared\n" +
-                            "3. Fresh commands will be registered")
+                    .setTitle("✅ Commands Refreshed Successfully")
+                    .setColor(Color.GREEN)
+                    .setDescription("All Discord slash commands have been refreshed!")
+                    .addField("Total Commands", String.valueOf(commandDataList.size()), true)
+                    .addField("Guild", event.getGuild().getName(), true)
+                    .addField("Status", "Commands should now be up-to-date in Discord", false)
                     .setFooter("Executed by " + event.getUser().getName());
 
             event.getHook().sendMessageEmbeds(embed.build()).queue();
 
+            System.out.println("=== Command Refresh Complete ===\n");
+
         } catch (Exception e) {
-            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to check commands: " + e.getMessage())).queue();
+            System.err.println("✗ Failed to refresh commands: " + e.getMessage());
+            e.printStackTrace();
+            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to refresh commands: " + e.getMessage())).queue();
         }
     }
 

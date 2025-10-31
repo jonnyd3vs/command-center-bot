@@ -42,7 +42,7 @@ public class CommandManager extends ListenerAdapter {
         registerCommand(new ClearProgressCommand(botConfig));
         registerCommand(new KickCommand(botConfig));
         registerCommand(new ClearMessagesCommand(yellMessageQueue));
-        registerCommand(new RefreshCommandsCommand());
+        registerCommand(new RefreshCommandsCommand(this));
     }
 
     /**
