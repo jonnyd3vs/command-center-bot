@@ -1,0 +1,18 @@
+{
+  "autoApprove": {
+    "bash": {
+      "enabled": true
+    },
+    "edit": {
+      "enabled": true
+    },
+    "write": {
+      "enabled": true
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)"
+    ]
+  }
+}

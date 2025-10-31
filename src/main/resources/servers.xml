@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<servers>
+    <!-- VoidX Server -->
+    <server>
+        <name>VoidX</name>
+        <host>54.39.68.229</host>
+        <port>8090</port>
+        <channelId>YOUR_DISCORD_CHANNEL_ID</channelId>
+    </server>
+
+    <!-- Kingdom Server -->
+    <server>
+        <name>Kingdom</name>
+        <host>54.39.68.229</host>
+        <port>8091</port>
+        <channelId>YOUR_DISCORD_CHANNEL_ID</channelId>
+    </server>
+
+    <!-- Vale Server -->
+    <server>
+        <name>Vale</name>
+        <host>54.39.68.229</host>
+        <port>8092</port>
+        <channelId>YOUR_DISCORD_CHANNEL_ID</channelId>
+    </server>
+
+    <!-- CryptX Server -->
+    <server>
+        <name>CryptX</name>
+        <host>54.39.68.229</host>
+        <port>8093</port>
+        <channelId>YOUR_DISCORD_CHANNEL_ID</channelId>
+    </server>
+
+    <!-- Genesis Server -->
+    <server>
+        <name>Genesis</name>
+        <host>54.39.68.229</host>
+        <port>8094</port>
+        <channelId>YOUR_DISCORD_CHANNEL_ID</channelId>
+    </server>
+</servers>

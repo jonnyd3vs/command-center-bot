@@ -1,0 +1,89 @@
+package com.rsps.discordbot.commands;
+
+import com.rsps.discordbot.client.GameServerClient;
+import com.rsps.discordbot.config.BotConfig;
+import com.rsps.discordbot.config.ServerConfig;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+
+import java.awt.Color;
+import java.util.Map;
+
+/**
+ * Command to reset/set player passwords
+ */
+public class SetPasswordCommand implements Command {
+
+    private final BotConfig botConfig;
+
+    public SetPasswordCommand(BotConfig botConfig) {
+        this.botConfig = botConfig;
+    }
+
+    @Override
+    public CommandData getCommandData() {
+        return Commands.slash("setpassword", "Reset a player's password")
+                .addOption(OptionType.STRING, "server", "The server name (e.g., VoidX, Kingdom)", true)
+                .addOption(OptionType.STRING, "player", "The player name", true);
+    }
+
+    @Override
+    public void execute(SlashCommandInteractionEvent event) {
+        // Defer reply as ephemeral (only visible to command user) for security
+        event.deferReply(true).queue();
+
+        String serverName = event.getOption("server").getAsString();
+        String playerName = event.getOption("player").getAsString();
+
+        // Get server config
+        ServerConfig serverConfig = ServerConfig.getServerByName(serverName);
+        if (serverConfig == null) {
+            event.getHook().sendMessageEmbeds(createErrorEmbed("Server not found: " + serverName)).queue();
+            return;
+        }
+
+        // Create client and execute command
+        GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
+
+        try {
+            Map<String, Object> response = client.setPassword(playerName);
+
+            EmbedBuilder embed = new EmbedBuilder()
+                    .setTitle("Password Reset Successfully")
+                    .setColor(Color.GREEN)
+                    .addField("Server", serverConfig.getName(), true)
+                    .addField("Player", playerName, true)
+                    .setFooter("Executed by " + event.getUser().getName());
+
+            // Add new password if available in response
+            if (response.containsKey("newPassword")) {
+                embed.addField("New Password", (String) response.get("newPassword"), false);
+            }
+
+            embed.setDescription("This message is only visible to you for security reasons.");
+
+            event.getHook().sendMessageEmbeds(embed.build()).queue();
+
+        } catch (Exception e) {
+            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to reset password: " + e.getMessage())).queue();
+        } finally {
+            client.close();
+        }
+    }
+
+    @Override
+    public PermissionLevel getRequiredPermission() {
+        return PermissionLevel.ADMIN;
+    }
+
+    private net.dv8tion.jda.api.entities.MessageEmbed createErrorEmbed(String message) {
+        return new EmbedBuilder()
+                .setTitle("Error")
+                .setDescription(message)
+                .setColor(Color.RED)
+                .build();
+    }
+}

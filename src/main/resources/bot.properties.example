@@ -1,0 +1,18 @@
+# Discord Bot Configuration
+# Copy this file to bot.properties and fill in your values
+# Alternatively, set these as environment variables
+
+# Discord bot token (get from https://discord.com/developers/applications)
+discord.bot.token=YOUR_DISCORD_BOT_TOKEN_HERE
+
+# API key for authenticating with game servers
+api.key=YOUR_API_KEY_HERE
+
+# Command prefix (optional, default: !)
+command.prefix=!
+
+# Discord role IDs for permissions (optional)
+# If not set, will use Discord permissions (Administrator, Manage Server)
+# To get role IDs: Right click role in Discord > Copy ID (requires Developer Mode)
+admin.role.id=
+moderator.role.id=

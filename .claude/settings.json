@@ -1,0 +1,16 @@
+{
+  "disableAllHooks": true,
+  "permissions": {
+    "deny": [
+      "Read(./server/data/**)",
+      "Read(./server/lib/**)",
+      "Read(./errors/**)",
+      "Read(./**/*.cache)",
+      "Read(./**/*.jar)",
+      "Read(./**/*.png)",
+      "Read(./**/target/**)",
+      "Read(./**/build/**)"
+    ],
+    "defaultMode": "bypassPermissions"
+  }
+}

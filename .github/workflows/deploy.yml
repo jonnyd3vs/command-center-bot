@@ -1,0 +1,54 @@
+name: Deploy Command Center Bot
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+
+    - name: Deploy to server
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+        BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+      run: |
+        # Setup SSH
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
+
+        # Create deployment directory on server
+        ssh -i ~/.ssh/deploy_key $SERVER_USER@$SERVER_HOST "mkdir -p ~/command-center-bot"
+
+        # Copy JAR file to server
+        scp -i ~/.ssh/deploy_key target/command-center-bot-1.0.0.jar $SERVER_USER@$SERVER_HOST:~/command-center-bot/
+
+        # Create config file on server
+        ssh -i ~/.ssh/deploy_key $SERVER_USER@$SERVER_HOST "cat > ~/command-center-bot/config.properties << 'EOF'
+        DISCORD_TOKEN=$BOT_TOKEN
+        EOF"
+
+        # Restart the service
+        ssh -i ~/.ssh/deploy_key $SERVER_USER@$SERVER_HOST "sudo systemctl restart command-center-bot"
+
+        # Check service status
+        ssh -i ~/.ssh/deploy_key $SERVER_USER@$SERVER_HOST "sudo systemctl status command-center-bot --no-pager"

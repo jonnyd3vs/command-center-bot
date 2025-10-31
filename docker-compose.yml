@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  rsps-bot:
+    build: .
+    container_name: rsps-command-center-bot
+    restart: unless-stopped
+    environment:
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - RSPS_API_KEY=${RSPS_API_KEY}
+      - ADMIN_ROLE_ID=${ADMIN_ROLE_ID:-}
+      - MODERATOR_ROLE_ID=${MODERATOR_ROLE_ID:-}
+    volumes:
+      - ./logs:/app/logs
+      - ./src/main/resources/servers.xml:/app/servers.xml:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
