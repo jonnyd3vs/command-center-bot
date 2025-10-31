@@ -115,7 +115,7 @@ public class CommandCenterBot {
                 for (net.dv8tion.jda.api.interactions.commands.Command cmd : globalCommands) {
                     System.out.println("  - Deleting global: /" + cmd.getName());
                 }
-                jda.updateCommands().queue().complete();
+                jda.updateCommands().complete();
                 System.out.println("  ✓ Global commands cleared");
             } else {
                 System.out.println("[2/4] No global commands to clear");
@@ -133,7 +133,7 @@ public class CommandCenterBot {
 
             // Step 3: Register new guild commands (this replaces all)
             System.out.println("\n[4/4] Registering " + commandDataList.size() + " new guild commands...");
-            jda.getGuildById(guildId).updateCommands().addCommands(commandDataList).queue().complete();
+            jda.getGuildById(guildId).updateCommands().addCommands(commandDataList).complete();
 
             for (net.dv8tion.jda.api.interactions.commands.build.CommandData cmd : commandDataList) {
                 System.out.println("  ✓ Registered: /" + cmd.getName());
