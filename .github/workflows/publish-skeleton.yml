@@ -1,0 +1,73 @@
+name: Publish Skeleton JAR
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'game-api-skeleton/**'
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # For creating releases
+      packages: write  # For GitHub Packages
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+
+    - name: Get version from pom.xml
+      id: version
+      run: |
+        VERSION=$(grep -m 1 '<version>' game-api-skeleton/pom.xml | sed 's/.*<version>\(.*\)<\/version>/\1/' | tr -d ' ')
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Build skeleton JAR
+      run: |
+        cd game-api-skeleton
+        mvn clean package -DskipTests
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: skeleton-v${{ steps.version.outputs.VERSION }}
+        name: Game API Skeleton ${{ steps.version.outputs.VERSION }}
+        files: game-api-skeleton/target/game-api-skeleton-${{ steps.version.outputs.VERSION }}.jar
+        body: |
+          ## Game API Skeleton ${{ steps.version.outputs.VERSION }}
+
+          Automatically published skeleton JAR.
+
+          ### Usage
+          Download this JAR and add to your game project:
+
+          ```bash
+          # Download
+          curl -L -o game-api-skeleton.jar \
+            https://github.com/${{ github.repository }}/releases/download/skeleton-v${{ steps.version.outputs.VERSION }}/game-api-skeleton-${{ steps.version.outputs.VERSION }}.jar
+
+          # Add to project
+          cp game-api-skeleton.jar your-game/server/libs/
+          ```
+
+          ### Endpoints
+          - POST /give-item
+          - POST /give-offers
+          - POST /mass-ban
+          - POST /set-password
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Built-in token, no PAT needed!
+
+    - name: Publish to GitHub Packages (Optional)
+      run: |
+        cd game-api-skeleton
+        mvn deploy
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Built-in token, no PAT needed!
