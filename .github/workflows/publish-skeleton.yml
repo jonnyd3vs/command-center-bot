@@ -64,10 +64,3 @@ jobs:
           - POST /set-password
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Built-in token, no PAT needed!
-
-    - name: Publish to GitHub Packages (Optional)
-      run: |
-        cd game-api-skeleton
-        mvn deploy
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Built-in token, no PAT needed!
