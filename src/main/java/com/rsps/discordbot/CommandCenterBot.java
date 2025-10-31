@@ -85,10 +85,10 @@ public class CommandCenterBot {
             commandDataList.add(command.getCommandData());
         }
 
-        // Register commands globally (takes up to 1 hour to update)
-        // For immediate updates during development, use guild.updateCommands() instead
-        jda.updateCommands().addCommands(commandDataList).queue(
-                success -> System.out.println("Successfully registered " + commandDataList.size() + " commands"),
+        // Register commands to specific guild for instant updates
+        String guildId = "1433696315602243748";
+        jda.getGuildById(guildId).updateCommands().addCommands(commandDataList).queue(
+                success -> System.out.println("Successfully registered " + commandDataList.size() + " commands to guild " + guildId),
                 error -> System.err.println("Failed to register commands: " + error.getMessage())
         );
     }
