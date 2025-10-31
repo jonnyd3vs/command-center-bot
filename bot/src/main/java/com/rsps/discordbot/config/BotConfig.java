@@ -115,4 +115,25 @@ public class BotConfig {
         }
         return roleId;
     }
+
+    /**
+     * Get yell server port (optional, default: 8091)
+     *
+     * @return Yell server port
+     */
+    public int getYellServerPort() {
+        String portStr = properties.getProperty("yell.server.port");
+        if (portStr == null || portStr.trim().isEmpty()) {
+            portStr = System.getenv("YELL_SERVER_PORT");
+        }
+        if (portStr == null || portStr.trim().isEmpty()) {
+            return 8091; // Default port
+        }
+        try {
+            return Integer.parseInt(portStr.trim());
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid yell server port, using default 8091");
+            return 8091;
+        }
+    }
 }

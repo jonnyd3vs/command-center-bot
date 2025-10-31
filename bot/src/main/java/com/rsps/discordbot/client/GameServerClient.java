@@ -90,6 +90,73 @@ public class GameServerClient {
     }
 
     /**
+     * Find items by name
+     *
+     * @param itemName The name (or partial name) of the item to search for
+     * @return Map containing list of matching items with their IDs
+     * @throws IOException If the request fails
+     */
+    public Map<String, Object> findItem(String itemName) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("itemName", itemName);
+
+        return sendPostRequestWithResponse("/find-item", payload);
+    }
+
+    /**
+     * Mute a player
+     *
+     * @param username The username of the player to mute
+     * @throws IOException If the request fails
+     */
+    public void mutePlayer(String username) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("username", username);
+
+        sendPostRequest("/mute", payload);
+    }
+
+    /**
+     * Check a player's bank pin
+     *
+     * @param username The username of the player
+     * @return Map containing pin information
+     * @throws IOException If the request fails
+     */
+    public Map<String, Object> checkPin(String username) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("username", username);
+
+        return sendPostRequestWithResponse("/check-pin", payload);
+    }
+
+    /**
+     * Clear a player's progress
+     *
+     * @param username The username of the player
+     * @throws IOException If the request fails
+     */
+    public void clearProgress(String username) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("username", username);
+
+        sendPostRequest("/clear-progress", payload);
+    }
+
+    /**
+     * Kick a player offline
+     *
+     * @param username The username of the player to kick
+     * @throws IOException If the request fails
+     */
+    public void kickPlayer(String username) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("username", username);
+
+        sendPostRequest("/kick", payload);
+    }
+
+    /**
      * Send a message to players (legacy method)
      *
      * @param type The type of message (Global, Player, Announcement)

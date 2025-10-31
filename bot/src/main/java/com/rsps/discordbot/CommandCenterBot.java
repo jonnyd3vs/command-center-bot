@@ -3,6 +3,8 @@ package com.rsps.discordbot;
 import com.rsps.discordbot.commands.Command;
 import com.rsps.discordbot.commands.CommandManager;
 import com.rsps.discordbot.config.BotConfig;
+import com.rsps.discordbot.config.ServerConfig;
+import com.rsps.discordbot.yell.YellServer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -22,6 +24,7 @@ public class CommandCenterBot {
     private static JDA jda;
     private static BotConfig botConfig;
     private static CommandManager commandManager;
+    private static YellServer yellServer;
 
     public static void main(String[] args) {
         System.out.println("Starting RSPS Command Center Bot...");
@@ -31,11 +34,11 @@ public class CommandCenterBot {
             botConfig = new BotConfig();
             System.out.println("Configuration loaded successfully");
 
-            // Create command manager
-            commandManager = new CommandManager(botConfig);
-            System.out.println("Command manager initialized");
+            // Load server configurations
+            List<ServerConfig> servers = ServerConfig.loadServerConfigs();
+            System.out.println("Loaded " + servers.size() + " server configuration(s)");
 
-            // Build JDA instance
+            // Build JDA instance first (needed for YellServer)
             jda = JDABuilder.createDefault(botConfig.getBotToken())
                     .setStatus(OnlineStatus.ONLINE)
                     .setActivity(Activity.watching("RSPS Servers"))
@@ -46,12 +49,22 @@ public class CommandCenterBot {
                     )
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .setChunkingFilter(ChunkingFilter.ALL)
-                    .addEventListeners(commandManager)
                     .build();
 
             // Wait for JDA to be ready
             jda.awaitReady();
             System.out.println("Bot is online!");
+
+            // Start yell server
+            yellServer = new YellServer(botConfig, servers, jda, botConfig.getYellServerPort());
+            yellServer.start();
+
+            // Create command manager (needs YellServer's message queue)
+            commandManager = new CommandManager(botConfig, yellServer.getMessageQueue());
+            System.out.println("Command manager initialized");
+
+            // Add command manager as event listener
+            jda.addEventListener(commandManager);
 
             // Register slash commands
             registerSlashCommands();
@@ -70,6 +83,9 @@ public class CommandCenterBot {
         // Add shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Shutting down bot...");
+            if (yellServer != null) {
+                yellServer.stop();
+            }
             if (jda != null) {
                 jda.shutdown();
             }

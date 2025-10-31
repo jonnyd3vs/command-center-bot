@@ -1,6 +1,7 @@
 package com.rsps.discordbot.commands;
 
 import com.rsps.discordbot.config.BotConfig;
+import com.rsps.discordbot.yell.YellMessageQueue;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -18,9 +19,11 @@ public class CommandManager extends ListenerAdapter {
 
     private final Map<String, Command> commands;
     private final BotConfig botConfig;
+    private final YellMessageQueue yellMessageQueue;
 
-    public CommandManager(BotConfig botConfig) {
+    public CommandManager(BotConfig botConfig, YellMessageQueue yellMessageQueue) {
         this.botConfig = botConfig;
+        this.yellMessageQueue = yellMessageQueue;
         this.commands = new HashMap<>();
         registerCommands();
     }
@@ -33,6 +36,12 @@ public class CommandManager extends ListenerAdapter {
         registerCommand(new MassBanCommand(botConfig));
         registerCommand(new GiveOffersCommand(botConfig));
         registerCommand(new SetPasswordCommand(botConfig));
+        registerCommand(new FindItemCommand(botConfig));
+        registerCommand(new MuteCommand(botConfig));
+        registerCommand(new CheckPinCommand(botConfig));
+        registerCommand(new ClearProgressCommand(botConfig));
+        registerCommand(new KickCommand(botConfig));
+        registerCommand(new ClearMessagesCommand(yellMessageQueue));
     }
 
     /**

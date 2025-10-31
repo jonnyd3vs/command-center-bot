@@ -29,6 +29,7 @@ jobs:
         SERVER_HOST: ${{ secrets.SERVER_HOST }}
         SERVER_USER: ${{ secrets.SERVER_USER }}
         BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        API_KEY: ${{ secrets.FANTASY_API_KEY }}
       run: |
         # Setup SSH
         mkdir -p ~/.ssh
@@ -40,11 +41,12 @@ jobs:
         ssh -i ~/.ssh/deploy_key $SERVER_USER@$SERVER_HOST "mkdir -p ~/command-center-bot"
 
         # Copy JAR file to server
-        scp -i ~/.ssh/deploy_key target/command-center-bot-1.0.0.jar $SERVER_USER@$SERVER_HOST:~/command-center-bot/
+        scp -i ~/.ssh/deploy_key bot/target/command-center-bot-1.0.0.jar $SERVER_USER@$SERVER_HOST:~/command-center-bot/
 
         # Create config file on server
-        ssh -i ~/.ssh/deploy_key $SERVER_USER@$SERVER_HOST "cat > ~/command-center-bot/config.properties << 'EOF'
-        DISCORD_TOKEN=$BOT_TOKEN
+        ssh -i ~/.ssh/deploy_key $SERVER_USER@$SERVER_HOST "cat > ~/command-center-bot/bot.properties << 'EOF'
+        discord.bot.token=$BOT_TOKEN
+        api.key=$API_KEY
         EOF"
 
         # Restart the service
