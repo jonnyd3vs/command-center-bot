@@ -103,31 +103,35 @@ public class CommandCenterBot {
 
         String guildId = "1433696315602243748";
 
-        // Clear all global commands first
-        jda.updateCommands().queue(
-                success -> System.out.println("Cleared global commands"),
-                error -> System.err.println("Failed to clear global commands: " + error.getMessage())
-        );
+        try {
+            // Clear all global commands first (synchronous)
+            System.out.println("Clearing global commands...");
+            jda.updateCommands().complete();
+            System.out.println("Global commands cleared");
 
-        // Clear guild commands and register new ones
-        jda.getGuildById(guildId).updateCommands().addCommands(commandDataList).queue(
-                success -> {
-                    System.out.println("Successfully registered " + commandDataList.size() + " commands to guild " + guildId);
-                    // Update command list channel after commands are registered
-                    updateCommandListChannel();
-                },
-                error -> System.err.println("Failed to register commands: " + error.getMessage())
-        );
+            // Clear and register guild commands (synchronous)
+            System.out.println("Registering " + commandDataList.size() + " guild commands...");
+            jda.getGuildById(guildId).updateCommands().addCommands(commandDataList).complete();
+            System.out.println("Successfully registered " + commandDataList.size() + " commands to guild " + guildId);
+
+            // Update command list channel after commands are registered
+            updateCommandListChannel();
+
+        } catch (Exception e) {
+            System.err.println("Failed to register commands: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
      * Update the command list channel with current commands
      */
     private static void updateCommandListChannel() {
-        // Add a small delay to ensure commands are fully registered
+        // Run in separate thread to avoid blocking
         new Thread(() -> {
             try {
-                Thread.sleep(2000); // Wait 2 seconds for commands to be fully registered
+                // Small delay to ensure Discord has processed the command registration
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -141,23 +145,36 @@ public class CommandCenterBot {
             }
 
             System.out.println("Updating command list channel...");
+            System.out.println("Total commands to display: " + commandManager.getCommands().size());
 
-        // Delete all messages in the channel
-        channel.getIterableHistory().queue(messages -> {
-            if (!messages.isEmpty()) {
-                channel.purgeMessages(messages);
-                System.out.println("Cleared " + messages.size() + " messages from command list channel");
+            // Delete all messages in the channel
+            try {
+                channel.getIterableHistory().complete().forEach(message -> {
+                    try {
+                        message.delete().complete();
+                    } catch (Exception e) {
+                        System.err.println("Failed to delete message: " + e.getMessage());
+                    }
+                });
+                System.out.println("Cleared old messages from command list channel");
+            } catch (Exception e) {
+                System.err.println("Failed to clear messages: " + e.getMessage());
             }
 
             // Build command list embed
             net.dv8tion.jda.api.EmbedBuilder embed = new net.dv8tion.jda.api.EmbedBuilder()
-                    .setTitle("Available Commands")
-                    .setDescription("List of all available bot commands")
+                    .setTitle("🤖 Command Center - Available Commands")
+                    .setDescription("All bot commands for managing RSPS servers")
                     .setColor(java.awt.Color.BLUE)
                     .setTimestamp(java.time.Instant.now());
 
+            // Sort commands alphabetically
+            java.util.List<Command> sortedCommands = new java.util.ArrayList<>(commandManager.getCommands().values());
+            sortedCommands.sort((c1, c2) -> c1.getCommandData().getName().compareTo(c2.getCommandData().getName()));
+
             // Add each command as a field
-            for (Command command : commandManager.getCommands().values()) {
+            int commandCount = 0;
+            for (Command command : sortedCommands) {
                 net.dv8tion.jda.api.interactions.commands.build.CommandData cmdData = command.getCommandData();
 
                 // Cast to SlashCommandData to access description and options
@@ -178,19 +195,27 @@ public class CommandCenterBot {
                         }
                     }
 
+                    // Add permission level
+                    description.append("\n**Permission:** ").append(command.getRequiredPermission().toString());
+
                     embed.addField("/" + slashCmd.getName(), description.toString(), false);
+                    commandCount++;
+                    System.out.println("Added command to list: /" + slashCmd.getName());
                 }
             }
 
-            embed.setFooter("Bot restarted at " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            embed.setFooter("Bot restarted • " + commandCount + " commands available • " +
+                java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
             // Send the embed
-            channel.sendMessageEmbeds(embed.build()).queue(
-                    success -> System.out.println("Command list updated successfully"),
-                    error -> System.err.println("Failed to update command list: " + error.getMessage())
-            );
-        });
-        }).start(); // Start the delayed update thread
+            try {
+                channel.sendMessageEmbeds(embed.build()).complete();
+                System.out.println("Command list updated successfully with " + commandCount + " commands");
+            } catch (Exception e) {
+                System.err.println("Failed to send command list: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     /**
