@@ -200,9 +200,9 @@ public class YellServer {
      */
     private String formatYellMessage(String serverName, String playerName, String message) {
         if (playerName != null && !playerName.trim().isEmpty()) {
-            return "**[" + serverName + "]** " + playerName + ": " + message;
+            return playerName + ": " + message;
         } else {
-            return "**[" + serverName + "]** " + message;
+            return message;
         }
     }
 }
