@@ -55,8 +55,14 @@ public class YellChannelListener extends ListenerAdapter {
         }
 
         // Get message details
-        User author = event.getAuthor();
-        String discordUsername = author.getName();
+        // Use server nickname if available, otherwise fall back to username
+        String discordUsername;
+        if (event.getMember() != null) {
+            discordUsername = event.getMember().getEffectiveName(); // Gets nickname or username
+        } else {
+            discordUsername = event.getAuthor().getName(); // Fallback for DMs
+        }
+
         String messageContent = event.getMessage().getContentDisplay();
 
         // Ignore empty messages
