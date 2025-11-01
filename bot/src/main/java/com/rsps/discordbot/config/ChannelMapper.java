@@ -1,6 +1,7 @@
 package com.rsps.discordbot.config;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,22 +11,22 @@ public class ChannelMapper {
 
     private static final Map<String, ServerConfig> channelToServerMap = new HashMap<>();
 
-    static {
-        // Fantasy Server - Channel ID: 1433696512814354522
-        ServerConfig fantasy = new ServerConfig(
-            "Fantasy",
-            "54.39.68.229",
-            8049,
-            "1433696512814354522"
-        );
-        channelToServerMap.put("1433696512814354522", fantasy);
+    /**
+     * Initialize the channel mapper with server configurations
+     * This should be called at bot startup with the loaded servers
+     *
+     * @param servers List of server configurations with testing mode already applied
+     */
+    public static void initialize(List<ServerConfig> servers) {
+        channelToServerMap.clear();
 
-        // Vale and Azerite will be added later
-        // Vale Server - Channel ID: 1433696608679362650
-        // channelToServerMap.put("1433696608679362650", vale);
+        for (ServerConfig server : servers) {
+            if (server.getChannelId() != null && !server.getChannelId().isEmpty()) {
+                channelToServerMap.put(server.getChannelId(), server);
+            }
+        }
 
-        // Azerite Server - Channel ID: 1433696582288674836
-        // channelToServerMap.put("1433696582288674836", azerite);
+        System.out.println("[ChannelMapper] Initialized with " + channelToServerMap.size() + " channel mappings");
     }
 
     /**

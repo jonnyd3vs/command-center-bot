@@ -4,6 +4,7 @@ import com.rsps.discordbot.commands.Command;
 import com.rsps.discordbot.commands.CommandManager;
 import com.rsps.discordbot.config.BotConfig;
 import com.rsps.discordbot.config.ServerConfig;
+import com.rsps.discordbot.config.ChannelMapper;
 import com.rsps.discordbot.listeners.YellChannelListener;
 import com.rsps.discordbot.yell.YellServer;
 import net.dv8tion.jda.api.JDA;
@@ -46,6 +47,8 @@ public class CommandCenterBot {
                     server.setTestingMode(true);
                 }
             }
+            // Initialize ChannelMapper with servers (respects testing mode)
+            ChannelMapper.initialize(servers);
 
             // Build JDA instance first (needed for YellServer)
             jda = JDABuilder.createDefault(botConfig.getBotToken())

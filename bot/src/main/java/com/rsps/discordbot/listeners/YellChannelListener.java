@@ -19,6 +19,8 @@ import java.util.Map;
  */
 public class YellChannelListener extends ListenerAdapter {
 
+    private static final int MAX_MESSAGE_LENGTH = 300;
+
     private final BotConfig botConfig;
     private final List<ServerConfig> servers;
     private final Map<String, GameServerClient> serverClients;
@@ -68,6 +70,11 @@ public class YellChannelListener extends ListenerAdapter {
         // Ignore empty messages
         if (messageContent == null || messageContent.trim().isEmpty()) {
             return;
+        }
+
+        // Limit message to 300 characters (in-game constraint)
+        if (messageContent.length() > MAX_MESSAGE_LENGTH) {
+            messageContent = messageContent.substring(0, MAX_MESSAGE_LENGTH);
         }
 
         // Send to game server
