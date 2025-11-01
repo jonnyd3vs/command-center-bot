@@ -25,16 +25,18 @@ public interface Command {
     /**
      * Get the minimum permission level required to execute this command
      *
-     * @return Permission level (EVERYONE, MODERATOR, ADMIN)
+     * @return Permission level (EVERYONE, MODERATOR, ADMIN, MANAGER, OWNER)
      */
     PermissionLevel getRequiredPermission();
 
     /**
-     * Permission levels for commands
+     * Permission levels for commands (in hierarchical order)
      */
     enum PermissionLevel {
         EVERYONE,
         MODERATOR,
-        ADMIN
+        ADMIN,
+        MANAGER,
+        OWNER
     }
 }

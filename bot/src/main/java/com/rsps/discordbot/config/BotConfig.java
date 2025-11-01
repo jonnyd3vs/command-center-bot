@@ -117,6 +117,32 @@ public class BotConfig {
     }
 
     /**
+     * Get manager role ID (optional)
+     *
+     * @return Manager role ID or null
+     */
+    public String getManagerRoleId() {
+        String roleId = properties.getProperty("manager.role.id");
+        if (roleId == null || roleId.trim().isEmpty()) {
+            roleId = System.getenv("MANAGER_ROLE_ID");
+        }
+        return roleId;
+    }
+
+    /**
+     * Get owner role ID (optional)
+     *
+     * @return Owner role ID or null
+     */
+    public String getOwnerRoleId() {
+        String roleId = properties.getProperty("owner.role.id");
+        if (roleId == null || roleId.trim().isEmpty()) {
+            roleId = System.getenv("OWNER_ROLE_ID");
+        }
+        return roleId;
+    }
+
+    /**
      * Get yell server port (optional, default: 8091)
      *
      * @return Yell server port

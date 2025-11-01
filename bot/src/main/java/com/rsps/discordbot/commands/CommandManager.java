@@ -105,6 +105,7 @@ public class CommandManager extends ListenerAdapter {
 
     /**
      * Check if a member has the required permission level
+     * Implements hierarchical permissions: Owner > Manager > Admin > Moderator
      *
      * @param member The member to check
      * @param requiredLevel The required permission level
@@ -115,21 +116,28 @@ public class CommandManager extends ListenerAdapter {
             return false;
         }
 
-        // Server owner always has permission
-        if (member.isOwner()) {
-            return true;
-        }
-
-        // Check based on permission level
+        // Check based on permission level (hierarchical)
         switch (requiredLevel) {
             case EVERYONE:
                 return true;
 
             case MODERATOR:
-                return hasModeratorRole(member) || hasAdminRole(member);
+                // Moderator commands work for: Moderator, Admin, Manager, Owner
+                return hasModeratorRole(member) || hasAdminRole(member)
+                    || hasManagerRole(member) || hasOwnerRole(member) || member.isOwner();
 
             case ADMIN:
-                return hasAdminRole(member);
+                // Admin commands work for: Admin, Manager, Owner
+                return hasAdminRole(member) || hasManagerRole(member)
+                    || hasOwnerRole(member) || member.isOwner();
+
+            case MANAGER:
+                // Manager commands work for: Manager, Owner
+                return hasManagerRole(member) || hasOwnerRole(member) || member.isOwner();
+
+            case OWNER:
+                // Owner commands work for: Owner only
+                return hasOwnerRole(member) || member.isOwner();
 
             default:
                 return false;
@@ -173,6 +181,48 @@ public class CommandManager extends ListenerAdapter {
 
         for (Role role : member.getRoles()) {
             if (role.getId().equals(moderatorRoleId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if member has manager role
+     *
+     * @param member The member to check
+     * @return true if member has manager role
+     */
+    private boolean hasManagerRole(Member member) {
+        String managerRoleId = botConfig.getManagerRoleId();
+        if (managerRoleId == null || managerRoleId.trim().isEmpty()) {
+            return false;
+        }
+
+        for (Role role : member.getRoles()) {
+            if (role.getId().equals(managerRoleId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if member has owner role
+     *
+     * @param member The member to check
+     * @return true if member has owner role
+     */
+    private boolean hasOwnerRole(Member member) {
+        String ownerRoleId = botConfig.getOwnerRoleId();
+        if (ownerRoleId == null || ownerRoleId.trim().isEmpty()) {
+            return false;
+        }
+
+        for (Role role : member.getRoles()) {
+            if (role.getId().equals(ownerRoleId)) {
                 return true;
             }
         }
