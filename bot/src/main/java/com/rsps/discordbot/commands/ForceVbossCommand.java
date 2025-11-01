@@ -6,34 +6,30 @@ import com.rsps.discordbot.config.ChannelMapper;
 import com.rsps.discordbot.config.ServerConfig;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.awt.Color;
 
 /**
- * Command to mute a player
+ * Command to force spawn a variable boss
+ * Restricted to moderator+ access
  */
-public class MuteCommand implements Command {
+public class ForceVbossCommand implements Command {
 
     private final BotConfig botConfig;
 
-    public MuteCommand(BotConfig botConfig) {
+    public ForceVbossCommand(BotConfig botConfig) {
         this.botConfig = botConfig;
     }
 
     @Override
     public CommandData getCommandData() {
-        return Commands.slash("mute", "Mute a player in the game")
-                .addOption(OptionType.STRING, "username", "The username of the player to mute", true)
-                .addOption(OptionType.INTEGER, "duration", "Duration in minutes (default: 60)", false);
+        return Commands.slash("force-vboss", "Force spawn a variable boss");
     }
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
-        // Get channel ID to determine which server
-        // (Reply is already deferred by CommandManager)
         String channelId = event.getChannel().getId();
         ServerConfig serverConfig = ChannelMapper.getServerForChannel(channelId);
 
@@ -44,41 +40,22 @@ public class MuteCommand implements Command {
             return;
         }
 
-        String username = event.getOption("username").getAsString();
-        Integer duration = event.getOption("duration") != null ? event.getOption("duration").getAsInt() : 60; // Default 60 minutes
-
-        // Create client and execute command
         GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
 
         try {
-            client.mutePlayer(username, duration);
-
-            // Calculate duration display
-            String durationDisplay;
-            if (duration >= 60) {
-                int hours = duration / 60;
-                int remainingMinutes = duration % 60;
-                if (remainingMinutes > 0) {
-                    durationDisplay = hours + " hour(s) and " + remainingMinutes + " minute(s)";
-                } else {
-                    durationDisplay = hours + " hour(s)";
-                }
-            } else {
-                durationDisplay = duration + " minute(s)";
-            }
+            client.forceVboss();
 
             EmbedBuilder embed = new EmbedBuilder()
-                    .setTitle("Player Muted Successfully")
-                    .setColor(Color.ORANGE)
+                    .setTitle("Variable Boss Spawned")
+                    .setColor(Color.CYAN)
                     .addField("Server", serverConfig.getName(), true)
-                    .addField("Player", username, true)
-                    .addField("Duration", durationDisplay, true)
+                    .setDescription("A variable boss has been force spawned!")
                     .setFooter("Executed by " + event.getUser().getName());
 
             event.getHook().sendMessageEmbeds(embed.build()).queue();
 
         } catch (Exception e) {
-            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to mute player: " + e.getMessage())).queue();
+            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to force spawn variable boss: " + e.getMessage())).queue();
         } finally {
             client.close();
         }

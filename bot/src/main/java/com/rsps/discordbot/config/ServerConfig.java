@@ -19,7 +19,8 @@ public class ServerConfig {
     private String name;
     private String host;
     private int port;
-    private String channelId;  // Discord channel ID for this server
+    private String channelId;  // Discord channel ID for commands
+    private String yellChannelId;  // Discord channel ID for yell messages
     private boolean testingMode;  // Whether to use localhost override
 
     public ServerConfig(String name, String host, int port, String channelId) {
@@ -27,6 +28,16 @@ public class ServerConfig {
         this.host = host;
         this.port = port;
         this.channelId = channelId;
+        this.yellChannelId = null;  // Optional
+        this.testingMode = false;
+    }
+
+    public ServerConfig(String name, String host, int port, String channelId, String yellChannelId) {
+        this.name = name;
+        this.host = host;
+        this.port = port;
+        this.channelId = channelId;
+        this.yellChannelId = yellChannelId;
         this.testingMode = false;
     }
 
@@ -52,6 +63,10 @@ public class ServerConfig {
 
     public String getChannelId() {
         return channelId;
+    }
+
+    public String getYellChannelId() {
+        return yellChannelId;
     }
 
     public String getUrl() {
@@ -104,7 +119,13 @@ public class ServerConfig {
                         channelId = element.getElementsByTagName("channelId").item(0).getTextContent();
                     }
 
-                    servers.add(new ServerConfig(name, host, port, channelId));
+                    // Yell Channel ID is optional
+                    String yellChannelId = null;
+                    if (element.getElementsByTagName("yellChannelId").getLength() > 0) {
+                        yellChannelId = element.getElementsByTagName("yellChannelId").item(0).getTextContent();
+                    }
+
+                    servers.add(new ServerConfig(name, host, port, channelId, yellChannelId));
                 }
             }
 
@@ -142,6 +163,22 @@ public class ServerConfig {
         List<ServerConfig> servers = loadServerConfigs();
         for (ServerConfig server : servers) {
             if (channelId.equals(server.getChannelId())) {
+                return server;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get server configuration by yell channel ID
+     *
+     * @param yellChannelId The Discord yell channel ID
+     * @return ServerConfig or null if not found
+     */
+    public static ServerConfig getServerByYellChannelId(String yellChannelId) {
+        List<ServerConfig> servers = loadServerConfigs();
+        for (ServerConfig server : servers) {
+            if (yellChannelId.equals(server.getYellChannelId())) {
                 return server;
             }
         }

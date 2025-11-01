@@ -143,6 +143,19 @@ public class BotConfig {
     }
 
     /**
+     * Get developer role ID (optional)
+     *
+     * @return Developer role ID or null
+     */
+    public String getDeveloperRoleId() {
+        String roleId = properties.getProperty("developer.role.id");
+        if (roleId == null || roleId.trim().isEmpty()) {
+            roleId = System.getenv("DEVELOPER_ROLE_ID");
+        }
+        return roleId;
+    }
+
+    /**
      * Get yell server port (optional, default: 8091)
      *
      * @return Yell server port

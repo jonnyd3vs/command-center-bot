@@ -120,8 +120,20 @@ public class GameServerClient {
      * @throws IOException If the request fails
      */
     public void mutePlayer(String username) throws IOException {
+        mutePlayer(username, 60); // Default 60 minutes
+    }
+
+    /**
+     * Mute a player with custom duration
+     *
+     * @param username The username of the player to mute
+     * @param durationMinutes The duration in minutes
+     * @throws IOException If the request fails
+     */
+    public void mutePlayer(String username, int durationMinutes) throws IOException {
         Map<String, Object> payload = new HashMap<>();
         payload.put("username", username);
+        payload.put("duration", durationMinutes);
 
         sendPostRequest("/mute", payload);
     }
@@ -179,6 +191,147 @@ public class GameServerClient {
         payload.put("message", message);
 
         sendPostRequest("/discord-yell", payload);
+    }
+
+    /**
+     * Unmute a player
+     *
+     * @param username The username of the player to unmute
+     * @throws IOException If the request fails
+     */
+    public void unmutePlayer(String username) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("username", username);
+
+        sendPostRequest("/unmute", payload);
+    }
+
+    /**
+     * Ban a player
+     *
+     * @param username The username of the player to ban
+     * @throws IOException If the request fails
+     */
+    public void banPlayer(String username) throws IOException {
+        banPlayer(username, 7); // Default 7 days
+    }
+
+    /**
+     * Ban a player with custom duration
+     *
+     * @param username The username of the player to ban
+     * @param durationDays The duration in days
+     * @throws IOException If the request fails
+     */
+    public void banPlayer(String username, int durationDays) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("username", username);
+        payload.put("duration", durationDays);
+
+        sendPostRequest("/ban", payload);
+    }
+
+    /**
+     * Unban a player
+     *
+     * @param username The username of the player to unban
+     * @throws IOException If the request fails
+     */
+    public void unbanPlayer(String username) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("username", username);
+
+        sendPostRequest("/unban", payload);
+    }
+
+    /**
+     * Set fake player count
+     *
+     * @param amount The amount to set the fake player count to
+     * @throws IOException If the request fails
+     */
+    public void setPlayerCount(int amount) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("amount", amount);
+
+        sendPostRequest("/setp", payload);
+    }
+
+    /**
+     * Increment fake player count
+     *
+     * @throws IOException If the request fails
+     */
+    public void addPlayerCount() throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        sendPostRequest("/addp", payload);
+    }
+
+    /**
+     * Decrement fake player count
+     *
+     * @throws IOException If the request fails
+     */
+    public void removePlayerCount() throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        sendPostRequest("/removep", payload);
+    }
+
+    /**
+     * Initiate server update
+     *
+     * @param timeInSeconds The number of seconds until the server restarts
+     * @throws IOException If the request fails
+     */
+    public void update(int timeInSeconds) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("time", timeInSeconds);
+
+        sendPostRequest("/update", payload);
+    }
+
+    /**
+     * Cancel server update
+     *
+     * @throws IOException If the request fails
+     */
+    public void disableUpdate() throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        sendPostRequest("/disableupdate", payload);
+    }
+
+    /**
+     * Toggle server release status
+     *
+     * @throws IOException If the request fails
+     */
+    public void release() throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        sendPostRequest("/release", payload);
+    }
+
+    /**
+     * Force spawn a variable boss
+     *
+     * @throws IOException If the request fails
+     */
+    public void forceVboss() throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        sendPostRequest("/force-vboss", payload);
+    }
+
+    /**
+     * Spawn AI bots
+     *
+     * @param amount The number of AI bots to spawn
+     * @return Map containing response data (spawned, skipped, totalAiBots)
+     * @throws IOException If the request fails
+     */
+    public Map<String, Object> loginAi(int amount) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("amount", amount);
+
+        return sendPostRequestWithResponse("/loginai", payload);
     }
 
     /**

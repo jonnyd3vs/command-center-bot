@@ -136,11 +136,11 @@ public class YellServer {
                 }
 
                 // Get the channel for this server
-                String channelId = serverConfig.getChannelId();
+                String channelId = serverConfig.getYellChannelId() != null ? serverConfig.getYellChannelId() : serverConfig.getChannelId();
                 TextChannel channel = jda.getTextChannelById(channelId);
 
                 if (channel == null) {
-                    sendResponse(exchange, 500, "{\"error\":\"Discord channel not found for server: " + serverConfig.getName() + "\"}");
+                    sendResponse(exchange, 500, "{\"error\":\"Discord yell channel not found for server: " + serverConfig.getName() + "\"}");
                     return;
                 }
 

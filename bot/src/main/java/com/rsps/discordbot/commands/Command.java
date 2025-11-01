@@ -47,6 +47,7 @@ public interface Command {
         MODERATOR,
         ADMIN,
         MANAGER,
-        OWNER
+        OWNER,
+        DEVELOPER
     }
 }

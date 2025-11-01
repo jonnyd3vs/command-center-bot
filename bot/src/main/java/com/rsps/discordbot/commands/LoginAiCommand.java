@@ -11,23 +11,23 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.awt.Color;
+import java.util.Map;
 
 /**
- * Command to mute a player
+ * Command to spawn AI bots in the game
  */
-public class MuteCommand implements Command {
+public class LoginAiCommand implements Command {
 
     private final BotConfig botConfig;
 
-    public MuteCommand(BotConfig botConfig) {
+    public LoginAiCommand(BotConfig botConfig) {
         this.botConfig = botConfig;
     }
 
     @Override
     public CommandData getCommandData() {
-        return Commands.slash("mute", "Mute a player in the game")
-                .addOption(OptionType.STRING, "username", "The username of the player to mute", true)
-                .addOption(OptionType.INTEGER, "duration", "Duration in minutes (default: 60)", false);
+        return Commands.slash("loginai", "Spawn AI bots in the game")
+                .addOption(OptionType.INTEGER, "amount", "Number of AI bots to spawn (max: 50)", true);
     }
 
     @Override
@@ -44,41 +44,44 @@ public class MuteCommand implements Command {
             return;
         }
 
-        String username = event.getOption("username").getAsString();
-        Integer duration = event.getOption("duration") != null ? event.getOption("duration").getAsInt() : 60; // Default 60 minutes
+        int amount = event.getOption("amount").getAsInt();
+
+        // Validate amount
+        if (amount <= 0) {
+            event.getHook().sendMessageEmbeds(createErrorEmbed("Amount must be a positive integer.")).queue();
+            return;
+        }
+
+        if (amount > 50) {
+            event.getHook().sendMessageEmbeds(createErrorEmbed("Amount cannot exceed 50 AI bots at once.")).queue();
+            return;
+        }
 
         // Create client and execute command
         GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
 
         try {
-            client.mutePlayer(username, duration);
+            Map<String, Object> result = client.loginAi(amount);
 
-            // Calculate duration display
-            String durationDisplay;
-            if (duration >= 60) {
-                int hours = duration / 60;
-                int remainingMinutes = duration % 60;
-                if (remainingMinutes > 0) {
-                    durationDisplay = hours + " hour(s) and " + remainingMinutes + " minute(s)";
-                } else {
-                    durationDisplay = hours + " hour(s)";
-                }
-            } else {
-                durationDisplay = duration + " minute(s)";
-            }
+            // Extract data from response
+            int spawned = result.get("spawned") != null ? ((Number) result.get("spawned")).intValue() : 0;
+            int skipped = result.get("skipped") != null ? ((Number) result.get("skipped")).intValue() : 0;
+            int totalAiBots = result.get("totalAiBots") != null ? ((Number) result.get("totalAiBots")).intValue() : 0;
 
             EmbedBuilder embed = new EmbedBuilder()
-                    .setTitle("Player Muted Successfully")
-                    .setColor(Color.ORANGE)
+                    .setTitle("AI Bots Spawned")
+                    .setColor(Color.GREEN)
                     .addField("Server", serverConfig.getName(), true)
-                    .addField("Player", username, true)
-                    .addField("Duration", durationDisplay, true)
+                    .addField("Requested", String.valueOf(amount), true)
+                    .addField("Spawned", String.valueOf(spawned), true)
+                    .addField("Skipped (Already Online)", String.valueOf(skipped), true)
+                    .addField("Total AI Bots Online", String.valueOf(totalAiBots), true)
                     .setFooter("Executed by " + event.getUser().getName());
 
             event.getHook().sendMessageEmbeds(embed.build()).queue();
 
         } catch (Exception e) {
-            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to mute player: " + e.getMessage())).queue();
+            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to spawn AI bots: " + e.getMessage())).queue();
         } finally {
             client.close();
         }
@@ -86,7 +89,7 @@ public class MuteCommand implements Command {
 
     @Override
     public PermissionLevel getRequiredPermission() {
-        return PermissionLevel.MODERATOR;
+        return PermissionLevel.OWNER;
     }
 
     private net.dv8tion.jda.api.entities.MessageEmbed createErrorEmbed(String message) {

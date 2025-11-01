@@ -43,6 +43,19 @@ public class CommandManager extends ListenerAdapter {
         registerCommand(new KickCommand(botConfig));
         registerCommand(new ClearMessagesCommand(yellMessageQueue));
         registerCommand(new RefreshCommandsCommand(this));
+
+        // New commands
+        registerCommand(new UnmuteCommand(botConfig));
+        registerCommand(new UnbanCommand(botConfig));
+        registerCommand(new BanCommand(botConfig));
+        registerCommand(new SetPCommand(botConfig));
+        registerCommand(new AddPCommand(botConfig));
+        registerCommand(new RemovePCommand(botConfig));
+        registerCommand(new UpdateCommand(botConfig));
+        registerCommand(new DisableUpdateCommand(botConfig));
+        registerCommand(new ReleaseCommand(botConfig));
+        registerCommand(new ForceVbossCommand(botConfig));
+        registerCommand(new LoginAiCommand(botConfig));
     }
 
     /**
@@ -140,8 +153,12 @@ public class CommandManager extends ListenerAdapter {
                 return hasManagerRole(member) || hasOwnerRole(member) || member.isOwner();
 
             case OWNER:
-                // Owner commands work for: Owner only
-                return hasOwnerRole(member) || member.isOwner();
+                // Owner commands work for: Owner, Developer
+                return hasOwnerRole(member) || hasDeveloperRole(member) || member.isOwner();
+
+            case DEVELOPER:
+                // Developer commands work for: Developer only
+                return hasDeveloperRole(member) || member.isOwner();
 
             default:
                 return false;
@@ -227,6 +244,27 @@ public class CommandManager extends ListenerAdapter {
 
         for (Role role : member.getRoles()) {
             if (role.getId().equals(ownerRoleId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if member has developer role
+     *
+     * @param member The member to check
+     * @return true if member has developer role
+     */
+    private boolean hasDeveloperRole(Member member) {
+        String developerRoleId = botConfig.getDeveloperRoleId();
+        if (developerRoleId == null || developerRoleId.trim().isEmpty()) {
+            return false;
+        }
+
+        for (Role role : member.getRoles()) {
+            if (role.getId().equals(developerRoleId)) {
                 return true;
             }
         }

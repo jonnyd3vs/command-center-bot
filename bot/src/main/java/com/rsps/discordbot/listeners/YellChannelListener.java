@@ -34,9 +34,9 @@ public class YellChannelListener extends ListenerAdapter {
 
         // Initialize game server clients for each server
         for (ServerConfig server : servers) {
-            if (server.getChannelId() != null && !server.getChannelId().isEmpty()) {
+            if (server.getYellChannelId() != null && !server.getYellChannelId().isEmpty()) {
                 GameServerClient client = new GameServerClient(server.getUrl(), botConfig.getApiKey());
-                serverClients.put(server.getChannelId(), client);
+                serverClients.put(server.getYellChannelId(), client);
             }
         }
     }

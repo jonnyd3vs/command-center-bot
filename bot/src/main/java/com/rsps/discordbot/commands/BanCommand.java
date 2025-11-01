@@ -13,21 +13,21 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import java.awt.Color;
 
 /**
- * Command to mute a player
+ * Command to ban a player
  */
-public class MuteCommand implements Command {
+public class BanCommand implements Command {
 
     private final BotConfig botConfig;
 
-    public MuteCommand(BotConfig botConfig) {
+    public BanCommand(BotConfig botConfig) {
         this.botConfig = botConfig;
     }
 
     @Override
     public CommandData getCommandData() {
-        return Commands.slash("mute", "Mute a player in the game")
-                .addOption(OptionType.STRING, "username", "The username of the player to mute", true)
-                .addOption(OptionType.INTEGER, "duration", "Duration in minutes (default: 60)", false);
+        return Commands.slash("ban", "Ban a player from the game")
+                .addOption(OptionType.STRING, "username", "The username of the player to ban", true)
+                .addOption(OptionType.INTEGER, "duration", "Duration in days (default: 7)", false);
     }
 
     @Override
@@ -45,31 +45,32 @@ public class MuteCommand implements Command {
         }
 
         String username = event.getOption("username").getAsString();
-        Integer duration = event.getOption("duration") != null ? event.getOption("duration").getAsInt() : 60; // Default 60 minutes
+        Integer duration = event.getOption("duration") != null ? event.getOption("duration").getAsInt() : 7; // Default 7 days
 
         // Create client and execute command
         GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
 
         try {
-            client.mutePlayer(username, duration);
+            client.banPlayer(username, duration);
 
             // Calculate duration display
             String durationDisplay;
-            if (duration >= 60) {
-                int hours = duration / 60;
-                int remainingMinutes = duration % 60;
-                if (remainingMinutes > 0) {
-                    durationDisplay = hours + " hour(s) and " + remainingMinutes + " minute(s)";
+            if (duration == 1) {
+                durationDisplay = "1 day";
+            } else if (duration >= 365) {
+                int years = duration / 365;
+                if (years == 1) {
+                    durationDisplay = "1 year";
                 } else {
-                    durationDisplay = hours + " hour(s)";
+                    durationDisplay = years + " years";
                 }
             } else {
-                durationDisplay = duration + " minute(s)";
+                durationDisplay = duration + " days";
             }
 
             EmbedBuilder embed = new EmbedBuilder()
-                    .setTitle("Player Muted Successfully")
-                    .setColor(Color.ORANGE)
+                    .setTitle("Player Banned Successfully")
+                    .setColor(Color.RED)
                     .addField("Server", serverConfig.getName(), true)
                     .addField("Player", username, true)
                     .addField("Duration", durationDisplay, true)
@@ -78,7 +79,7 @@ public class MuteCommand implements Command {
             event.getHook().sendMessageEmbeds(embed.build()).queue();
 
         } catch (Exception e) {
-            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to mute player: " + e.getMessage())).queue();
+            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to ban player: " + e.getMessage())).queue();
         } finally {
             client.close();
         }
@@ -86,7 +87,7 @@ public class MuteCommand implements Command {
 
     @Override
     public PermissionLevel getRequiredPermission() {
-        return PermissionLevel.MODERATOR;
+        return PermissionLevel.ADMIN;
     }
 
     private net.dv8tion.jda.api.entities.MessageEmbed createErrorEmbed(String message) {

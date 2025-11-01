@@ -13,27 +13,25 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import java.awt.Color;
 
 /**
- * Command to mute a player
+ * Command to initiate a server update/restart
+ * Restricted to owner-level access
  */
-public class MuteCommand implements Command {
+public class UpdateCommand implements Command {
 
     private final BotConfig botConfig;
 
-    public MuteCommand(BotConfig botConfig) {
+    public UpdateCommand(BotConfig botConfig) {
         this.botConfig = botConfig;
     }
 
     @Override
     public CommandData getCommandData() {
-        return Commands.slash("mute", "Mute a player in the game")
-                .addOption(OptionType.STRING, "username", "The username of the player to mute", true)
-                .addOption(OptionType.INTEGER, "duration", "Duration in minutes (default: 60)", false);
+        return Commands.slash("update", "Initiate a server update/restart")
+                .addOption(OptionType.INTEGER, "time", "Number of seconds until server restarts", true);
     }
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
-        // Get channel ID to determine which server
-        // (Reply is already deferred by CommandManager)
         String channelId = event.getChannel().getId();
         ServerConfig serverConfig = ChannelMapper.getServerForChannel(channelId);
 
@@ -44,41 +42,25 @@ public class MuteCommand implements Command {
             return;
         }
 
-        String username = event.getOption("username").getAsString();
-        Integer duration = event.getOption("duration") != null ? event.getOption("duration").getAsInt() : 60; // Default 60 minutes
+        int timeInSeconds = event.getOption("time").getAsInt();
 
-        // Create client and execute command
         GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
 
         try {
-            client.mutePlayer(username, duration);
-
-            // Calculate duration display
-            String durationDisplay;
-            if (duration >= 60) {
-                int hours = duration / 60;
-                int remainingMinutes = duration % 60;
-                if (remainingMinutes > 0) {
-                    durationDisplay = hours + " hour(s) and " + remainingMinutes + " minute(s)";
-                } else {
-                    durationDisplay = hours + " hour(s)";
-                }
-            } else {
-                durationDisplay = duration + " minute(s)";
-            }
+            client.update(timeInSeconds);
 
             EmbedBuilder embed = new EmbedBuilder()
-                    .setTitle("Player Muted Successfully")
+                    .setTitle("Server Update Initiated")
                     .setColor(Color.ORANGE)
                     .addField("Server", serverConfig.getName(), true)
-                    .addField("Player", username, true)
-                    .addField("Duration", durationDisplay, true)
+                    .addField("Time Until Restart", timeInSeconds + " seconds", true)
+                    .setDescription("The server will save and restart in " + timeInSeconds + " seconds.")
                     .setFooter("Executed by " + event.getUser().getName());
 
             event.getHook().sendMessageEmbeds(embed.build()).queue();
 
         } catch (Exception e) {
-            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to mute player: " + e.getMessage())).queue();
+            event.getHook().sendMessageEmbeds(createErrorEmbed("Failed to initiate update: " + e.getMessage())).queue();
         } finally {
             client.close();
         }
@@ -86,7 +68,7 @@ public class MuteCommand implements Command {
 
     @Override
     public PermissionLevel getRequiredPermission() {
-        return PermissionLevel.MODERATOR;
+        return PermissionLevel.OWNER;
     }
 
     private net.dv8tion.jda.api.entities.MessageEmbed createErrorEmbed(String message) {

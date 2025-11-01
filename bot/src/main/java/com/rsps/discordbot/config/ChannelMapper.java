@@ -21,8 +21,10 @@ public class ChannelMapper {
         channelToServerMap.clear();
 
         for (ServerConfig server : servers) {
-            if (server.getChannelId() != null && !server.getChannelId().isEmpty()) {
+            if (server.getChannelId() != null && !server.getChannelId().isEmpty()
+                && !server.getChannelId().equals("YOUR_DISCORD_CHANNEL_ID")) {
                 channelToServerMap.put(server.getChannelId(), server);
+                System.out.println("[ChannelMapper] Loaded channel " + server.getChannelId() + " for server " + server.getName());
             }
         }
 
