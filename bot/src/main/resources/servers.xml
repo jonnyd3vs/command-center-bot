@@ -39,4 +39,12 @@
         <port>8094</port>
         <channelId>YOUR_DISCORD_CHANNEL_ID</channelId>
     </server>
+
+    <!-- Fantasy Server -->
+    <server>
+        <name>Fantasy</name>
+        <host>148.113.171.18</host>
+        <port>43594</port>
+        <channelId>YOUR_DISCORD_CHANNEL_ID</channelId>
+    </server>
 </servers>
