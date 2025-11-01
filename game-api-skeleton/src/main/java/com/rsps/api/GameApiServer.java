@@ -38,11 +38,37 @@ public class GameApiServer {
     }
 
     /**
-     * Auto-register all handlers in a package using reflection
-     * Scans for classes with @ApiEndpoint annotation
-     *
-     * @param packageName The package to scan (e.g., "com.realm.api.skeleton")
+     * Manually register a single handler
+     * @param handler The handler instance to register
      */
+    public void registerHandler(GameApiHandler handler) {
+        // Get the @ApiEndpoint annotation from the handler class
+        ApiEndpoint endpoint = handler.getClass().getAnnotation(ApiEndpoint.class);
+
+        if (endpoint == null) {
+            System.err.println("[API Server] WARNING: Handler " + handler.getClass().getName() + " does not have @ApiEndpoint annotation");
+            return;
+        }
+
+        // Get the endpoint path from the annotation
+        String path = endpoint.value();
+
+        // Register the handler in the endpoints map
+        registerEndpoint(path, handler);
+        System.out.println("[API Server] Manually registered: " + path + " -> " + handler.getClass().getSimpleName());
+    }
+
+        /**
+         * Auto-register all handlers in a package using reflection
+         * Scans for classes with @ApiEndpoint annotation
+         *
+         * WARNING: This method uses reflection and may not work correctly in FAT/shaded JARs.
+         * For production use with FAT JARs, use registerHandler() to manually register each handler instead.
+         *
+         * @param packageName The package to scan (e.g., "com.realm.api.skeleton")
+         * @deprecated Use {@link #registerHandler(GameApiHandler)} for FAT JAR compatibility
+         */
+    @Deprecated
     public void registerHandlersInPackage(String packageName) {
         try {
             // Get all classes in the package
