@@ -33,6 +33,7 @@ public class CommandManager extends ListenerAdapter {
      */
     private void registerCommands() {
         registerCommand(new GiveItemCommand(botConfig));
+        registerCommand(new GiveAllCommand(botConfig));
         registerCommand(new MassBanCommand(botConfig));
         registerCommand(new GiveOffersCommand(botConfig));
         registerCommand(new SetPasswordCommand(botConfig));

@@ -58,6 +58,22 @@ public class GameServerClient {
     }
 
     /**
+     * Give an item to all online players
+     *
+     * @param itemId The ID of the item to give
+     * @param amount The amount of the item
+     * @return Map containing response data (itemId, itemName, amount, playersGiven)
+     * @throws IOException If the request fails
+     */
+    public Map<String, Object> giveAll(int itemId, int amount) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("itemId", itemId);
+        payload.put("amount", amount);
+
+        return sendPostRequestWithResponse("/give-all", payload);
+    }
+
+    /**
      * Mass ban players
      *
      * @param playerName The name of the player to ban
