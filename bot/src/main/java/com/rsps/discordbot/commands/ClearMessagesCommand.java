@@ -26,9 +26,7 @@ public class ClearMessagesCommand implements Command {
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
-        // Defer reply to prevent timeout
-        event.deferReply().queue();
-
+        // Reply is already deferred by CommandManager
         try {
             int clearedCount = yellMessageQueue.clearMessages();
 

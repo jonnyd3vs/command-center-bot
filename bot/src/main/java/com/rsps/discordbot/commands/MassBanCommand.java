@@ -31,10 +31,8 @@ public class MassBanCommand implements Command {
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
-        // Defer reply to prevent timeout
-        event.deferReply().queue();
-
         // Get channel ID to determine which server
+        // (Reply is already deferred by CommandManager)
         String channelId = event.getChannel().getId();
         ServerConfig serverConfig = ChannelMapper.getServerForChannel(channelId);
 

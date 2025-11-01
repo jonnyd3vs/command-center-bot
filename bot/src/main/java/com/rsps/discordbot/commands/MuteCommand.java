@@ -31,16 +31,14 @@ public class MuteCommand implements Command {
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
-        // Defer reply to prevent timeout
-        event.deferReply().queue();
-
         // Get channel ID to determine which server
+        // (Reply is already deferred by CommandManager)
         String channelId = event.getChannel().getId();
         ServerConfig serverConfig = ChannelMapper.getServerForChannel(channelId);
 
         if (serverConfig == null) {
             event.getHook().sendMessageEmbeds(createErrorEmbed(
-                "This command can only be used in server-specific channels (Fantasy, Vale, or Azerite)."
+                "This command can only be used in server-specific channels (Fantasy, Vale, or Azerite2)."
             )).queue();
             return;
         }

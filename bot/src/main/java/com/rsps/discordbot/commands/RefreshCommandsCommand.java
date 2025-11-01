@@ -28,8 +28,7 @@ public class RefreshCommandsCommand implements Command {
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
-        event.deferReply().setEphemeral(true).queue();
-
+        // Reply is already deferred as ephemeral by CommandManager
         try {
             System.out.println("\n=== Manual Command Refresh Triggered by " + event.getUser().getName() + " ===");
 
@@ -76,6 +75,11 @@ public class RefreshCommandsCommand implements Command {
     @Override
     public PermissionLevel getRequiredPermission() {
         return PermissionLevel.ADMIN;
+    }
+
+    @Override
+    public boolean isEphemeral() {
+        return true;  // Admin commands should be ephemeral
     }
 
     private net.dv8tion.jda.api.entities.MessageEmbed createErrorEmbed(String message) {

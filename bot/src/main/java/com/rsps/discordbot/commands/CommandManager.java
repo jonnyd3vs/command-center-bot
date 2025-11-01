@@ -73,6 +73,10 @@ public class CommandManager extends ListenerAdapter {
             return;
         }
 
+        // Defer reply immediately to prevent timeout (must respond within 3 seconds)
+        // Use ephemeral mode if command requires it (security-sensitive commands)
+        event.deferReply(command.isEphemeral()).queue();
+
         // Check permissions
         if (!hasPermission(event.getMember(), command.getRequiredPermission())) {
             EmbedBuilder embed = new EmbedBuilder()
@@ -81,7 +85,7 @@ public class CommandManager extends ListenerAdapter {
                     .addField("Required Permission", command.getRequiredPermission().toString(), false)
                     .setColor(Color.RED);
 
-            event.replyEmbeds(embed.build()).setEphemeral(true).queue();
+            event.getHook().sendMessageEmbeds(embed.build()).queue();
             return;
         }
 

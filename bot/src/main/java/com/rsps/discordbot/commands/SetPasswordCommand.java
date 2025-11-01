@@ -32,10 +32,8 @@ public class SetPasswordCommand implements Command {
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
-        // Defer reply as ephemeral (only visible to command user) for security
-        event.deferReply(true).queue();
-
         // Get channel ID to determine which server
+        // (Reply is already deferred as ephemeral by CommandManager)
         String channelId = event.getChannel().getId();
         ServerConfig serverConfig = ChannelMapper.getServerForChannel(channelId);
 
@@ -80,6 +78,11 @@ public class SetPasswordCommand implements Command {
     @Override
     public PermissionLevel getRequiredPermission() {
         return PermissionLevel.ADMIN;
+    }
+
+    @Override
+    public boolean isEphemeral() {
+        return true;  // Password resets should only be visible to the command user
     }
 
     private net.dv8tion.jda.api.entities.MessageEmbed createErrorEmbed(String message) {

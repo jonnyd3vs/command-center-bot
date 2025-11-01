@@ -33,14 +33,15 @@ public class GiveItemCommand implements Command {
 
     @Override
     public void execute(SlashCommandInteractionEvent event) {
-        // Defer reply to prevent timeout
-        event.deferReply().queue();
-
         // Get channel ID to determine which server
+        // (Reply is already deferred by CommandManager)
         String channelId = event.getChannel().getId();
+        System.out.println("[DEBUG] Command executed in channel: " + channelId);
+        System.out.println("[DEBUG] Mapped channels: " + ChannelMapper.getMappedChannels());
         ServerConfig serverConfig = ChannelMapper.getServerForChannel(channelId);
 
         if (serverConfig == null) {
+            System.out.println("[DEBUG] Server config is NULL for channel: " + channelId);
             event.getHook().sendMessageEmbeds(createErrorEmbed(
                 "This command can only be used in server-specific channels (Fantasy, Vale, or Azerite)."
             )).queue();

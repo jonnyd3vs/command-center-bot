@@ -30,6 +30,16 @@ public interface Command {
     PermissionLevel getRequiredPermission();
 
     /**
+     * Whether this command's replies should be ephemeral (only visible to the user who ran it)
+     * Override this method to return true for security-sensitive commands
+     *
+     * @return true if replies should be ephemeral, false otherwise (default)
+     */
+    default boolean isEphemeral() {
+        return false;
+    }
+
+    /**
      * Permission levels for commands (in hierarchical order)
      */
     enum PermissionLevel {
