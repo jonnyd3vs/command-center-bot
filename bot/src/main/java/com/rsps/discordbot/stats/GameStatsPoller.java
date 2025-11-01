@@ -40,9 +40,38 @@ public class GameStatsPoller {
      * Start the stats polling service
      */
     public void start() {
+        // Clear old messages from stats channels on startup
+        clearOldStatsMessages();
+
         // Poll every 5 seconds
         scheduler.scheduleAtFixedRate(this::updateAllServerStats, 0, 5, TimeUnit.SECONDS);
         System.out.println("GameStatsPoller started - updating stats every 5 seconds");
+    }
+
+    /**
+     * Clear old stats messages from all configured stats channels
+     */
+    private void clearOldStatsMessages() {
+        for (ServerConfig server : servers) {
+            if (server.getStatsChannelId() != null && !server.getStatsChannelId().trim().isEmpty()) {
+                TextChannel statsChannel = jda.getTextChannelById(server.getStatsChannelId());
+                if (statsChannel != null) {
+                    try {
+                        System.out.println("[Stats] Clearing old messages from stats channel for " + server.getName());
+                        statsChannel.getIterableHistory().complete().forEach(message -> {
+                            try {
+                                message.delete().complete();
+                            } catch (Exception e) {
+                                System.err.println("[Stats] Failed to delete message: " + e.getMessage());
+                            }
+                        });
+                        System.out.println("[Stats] Cleared old stats messages for " + server.getName());
+                    } catch (Exception e) {
+                        System.err.println("[Stats] Error clearing old messages: " + e.getMessage());
+                    }
+                }
+            }
+        }
     }
 
     /**
