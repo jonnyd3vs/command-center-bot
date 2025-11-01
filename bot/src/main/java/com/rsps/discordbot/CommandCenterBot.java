@@ -4,6 +4,7 @@ import com.rsps.discordbot.commands.Command;
 import com.rsps.discordbot.commands.CommandManager;
 import com.rsps.discordbot.config.BotConfig;
 import com.rsps.discordbot.config.ServerConfig;
+import com.rsps.discordbot.listeners.YellChannelListener;
 import com.rsps.discordbot.yell.YellServer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -65,6 +66,11 @@ public class CommandCenterBot {
 
             // Add command manager as event listener
             jda.addEventListener(commandManager);
+
+            // Add yell channel listener for Discord -> Game yells
+            YellChannelListener yellChannelListener = new YellChannelListener(botConfig, servers);
+            jda.addEventListener(yellChannelListener);
+            System.out.println("Yell channel listener initialized");
 
             // Register slash commands (this will also update the command list channel)
             registerSlashCommands();

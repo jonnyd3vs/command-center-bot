@@ -167,6 +167,21 @@ public class GameServerClient {
     }
 
     /**
+     * Send a Discord yell message to the game server
+     *
+     * @param discordUsername The Discord username
+     * @param message The message content
+     * @throws IOException If the request fails
+     */
+    public void sendDiscordYell(String discordUsername, String message) throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("discordUsername", discordUsername);
+        payload.put("message", message);
+
+        sendPostRequest("/discord-yell", payload);
+    }
+
+    /**
      * Send a message to players (legacy method)
      *
      * @param type The type of message (Global, Player, Announcement)
