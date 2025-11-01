@@ -26,7 +26,17 @@ public class GameServerClient {
     public GameServerClient(String serverUrl, String apiKey) {
         this.serverUrl = serverUrl.endsWith("/") ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
         this.apiKey = apiKey;
-        this.httpClient = HttpClients.createDefault();
+
+        // Configure HTTP client with timeouts to prevent hanging on offline servers
+        org.apache.hc.client5.http.config.RequestConfig requestConfig = org.apache.hc.client5.http.config.RequestConfig.custom()
+                .setConnectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)  // 5 second connection timeout
+                .setResponseTimeout(10, java.util.concurrent.TimeUnit.SECONDS) // 10 second response timeout
+                .build();
+
+        this.httpClient = HttpClients.custom()
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+
         this.gson = new Gson();
     }
 
