@@ -172,14 +172,20 @@ public class YellServer {
      * Find server by API key
      */
     private ServerConfig findServerByApiKey(String apiKey) {
-        // For now, we use the same API key for all servers
-        // and rely on the server configuration to match
+        // Check each server's unique API key
+        for (ServerConfig server : servers) {
+            String serverApiKey = server.getApiKey();
+            if (serverApiKey != null && serverApiKey.equals(apiKey)) {
+                return server;
+            }
+        }
+
+        // Fallback to global API key if no server-specific key matches
         String configuredApiKey = botConfig.getApiKey();
         if (configuredApiKey != null && configuredApiKey.equals(apiKey)) {
-            // Return the first server or implement multi-key support
-            // For multi-server setups, you might want different API keys per server
             return servers.isEmpty() ? null : servers.get(0);
         }
+
         return null;
     }
 
