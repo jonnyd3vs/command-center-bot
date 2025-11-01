@@ -6,6 +6,7 @@ import com.rsps.discordbot.config.BotConfig;
 import com.rsps.discordbot.config.ServerConfig;
 import com.rsps.discordbot.config.ChannelMapper;
 import com.rsps.discordbot.listeners.YellChannelListener;
+import com.rsps.discordbot.stats.GameStatsPoller;
 import com.rsps.discordbot.yell.YellServer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -27,6 +28,7 @@ public class CommandCenterBot {
     private static BotConfig botConfig;
     private static CommandManager commandManager;
     private static YellServer yellServer;
+    private static GameStatsPoller statsPoller;
 
     public static void main(String[] args) {
         System.out.println("Starting RSPS Command Center Bot...");
@@ -86,6 +88,11 @@ public class CommandCenterBot {
             // Register slash commands (this will also update the command list channel)
             registerSlashCommands();
 
+            // Start stats poller (pass servers list with testing mode already applied)
+            statsPoller = new GameStatsPoller(jda, botConfig, servers);
+            statsPoller.start();
+            System.out.println("Stats poller initialized");
+
             System.out.println("RSPS Command Center Bot is ready!");
 
         } catch (Exception e) {
@@ -97,6 +104,9 @@ public class CommandCenterBot {
         // Add shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Shutting down bot...");
+            if (statsPoller != null) {
+                statsPoller.stop();
+            }
             if (yellServer != null) {
                 yellServer.stop();
             }

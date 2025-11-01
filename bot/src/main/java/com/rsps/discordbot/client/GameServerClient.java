@@ -335,6 +335,17 @@ public class GameServerClient {
     }
 
     /**
+     * Get server statistics
+     *
+     * @return Map containing server statistics
+     * @throws IOException If the request fails
+     */
+    public Map<String, Object> getStats() throws IOException {
+        Map<String, Object> payload = new HashMap<>();
+        return sendPostRequestWithResponse("/stats", payload);
+    }
+
+    /**
      * Send a message to players (legacy method)
      *
      * @param type The type of message (Global, Player, Announcement)

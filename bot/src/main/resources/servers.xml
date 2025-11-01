@@ -44,8 +44,9 @@
     <server>
         <name>Fantasy</name>
         <host>148.113.171.18</host>
-        <port>8090</port>
+        <port>8092</port>
         <channelId>1433696512814354522</channelId>
         <yellChannelId>1433760379258798161</yellChannelId>
+        <statsChannelId>1434081291858477116</statsChannelId>
     </server>
 </servers>

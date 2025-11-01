@@ -21,6 +21,7 @@ public class ServerConfig {
     private int port;
     private String channelId;  // Discord channel ID for commands
     private String yellChannelId;  // Discord channel ID for yell messages
+    private String statsChannelId;  // Discord channel ID for stats display
     private boolean testingMode;  // Whether to use localhost override
 
     public ServerConfig(String name, String host, int port, String channelId) {
@@ -29,6 +30,7 @@ public class ServerConfig {
         this.port = port;
         this.channelId = channelId;
         this.yellChannelId = null;  // Optional
+        this.statsChannelId = null;  // Optional
         this.testingMode = false;
     }
 
@@ -38,6 +40,17 @@ public class ServerConfig {
         this.port = port;
         this.channelId = channelId;
         this.yellChannelId = yellChannelId;
+        this.statsChannelId = null;  // Optional
+        this.testingMode = false;
+    }
+
+    public ServerConfig(String name, String host, int port, String channelId, String yellChannelId, String statsChannelId) {
+        this.name = name;
+        this.host = host;
+        this.port = port;
+        this.channelId = channelId;
+        this.yellChannelId = yellChannelId;
+        this.statsChannelId = statsChannelId;
         this.testingMode = false;
     }
 
@@ -67,6 +80,10 @@ public class ServerConfig {
 
     public String getYellChannelId() {
         return yellChannelId;
+    }
+
+    public String getStatsChannelId() {
+        return statsChannelId;
     }
 
     public String getUrl() {
@@ -125,7 +142,13 @@ public class ServerConfig {
                         yellChannelId = element.getElementsByTagName("yellChannelId").item(0).getTextContent();
                     }
 
-                    servers.add(new ServerConfig(name, host, port, channelId, yellChannelId));
+                    // Stats Channel ID is optional
+                    String statsChannelId = null;
+                    if (element.getElementsByTagName("statsChannelId").getLength() > 0) {
+                        statsChannelId = element.getElementsByTagName("statsChannelId").item(0).getTextContent();
+                    }
+
+                    servers.add(new ServerConfig(name, host, port, channelId, yellChannelId, statsChannelId));
                 }
             }
 
