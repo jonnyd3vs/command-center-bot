@@ -2,6 +2,8 @@
 
 A Discord bot for managing multiple RuneScape Private Servers (RSPS) through a centralized command center. This bot allows administrators and moderators to execute management commands across multiple game servers directly from Discord.
 
+<!-- Deployment trigger: 2025-01-01 -->
+
 ## Features
 
 - **Multi-Server Management**: Control multiple RSPS instances from a single Discord server
