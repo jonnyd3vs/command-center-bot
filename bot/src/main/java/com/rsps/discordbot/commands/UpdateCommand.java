@@ -44,7 +44,7 @@ public class UpdateCommand implements Command {
 
         int timeInSeconds = event.getOption("time").getAsInt();
 
-        GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
+        GameServerClient client = new GameServerClient(serverConfig.getUrl(), serverConfig.getApiKey() != null ? serverConfig.getApiKey() : botConfig.getApiKey());
 
         try {
             client.update(timeInSeconds);

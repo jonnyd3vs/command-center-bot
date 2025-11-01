@@ -22,6 +22,7 @@ public class ServerConfig {
     private String channelId;  // Discord channel ID for commands
     private String yellChannelId;  // Discord channel ID for yell messages
     private String statsChannelId;  // Discord channel ID for stats display
+    private String apiKey;  // API key for this specific server
     private boolean testingMode;  // Whether to use localhost override
 
     public ServerConfig(String name, String host, int port, String channelId) {
@@ -86,6 +87,14 @@ public class ServerConfig {
         return statsChannelId;
     }
 
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
     public String getUrl() {
         // Use getHost() which respects testing mode
         return "http://" + getHost() + ":" + port;
@@ -148,7 +157,15 @@ public class ServerConfig {
                         statsChannelId = element.getElementsByTagName("statsChannelId").item(0).getTextContent();
                     }
 
-                    servers.add(new ServerConfig(name, host, port, channelId, yellChannelId, statsChannelId));
+                    // API Key is optional (will fall back to global key if not specified)
+                    String apiKey = null;
+                    if (element.getElementsByTagName("apiKey").getLength() > 0) {
+                        apiKey = element.getElementsByTagName("apiKey").item(0).getTextContent();
+                    }
+
+                    ServerConfig server = new ServerConfig(name, host, port, channelId, yellChannelId, statsChannelId);
+                    server.setApiKey(apiKey);
+                    servers.add(server);
                 }
             }
 

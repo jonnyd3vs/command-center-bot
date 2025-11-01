@@ -50,7 +50,7 @@ public class GiveOffersCommand implements Command {
         String offerData = event.getOption("offerdata") != null ? event.getOption("offerdata").getAsString() : "";
 
         // Create client and execute command
-        GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
+        GameServerClient client = new GameServerClient(serverConfig.getUrl(), serverConfig.getApiKey() != null ? serverConfig.getApiKey() : botConfig.getApiKey());
 
         try {
             client.giveOffers(playerName, offerType, offerData);

@@ -48,7 +48,7 @@ public class MuteCommand implements Command {
         Integer duration = event.getOption("duration") != null ? event.getOption("duration").getAsInt() : 60; // Default 60 minutes
 
         // Create client and execute command
-        GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
+        GameServerClient client = new GameServerClient(serverConfig.getUrl(), serverConfig.getApiKey() != null ? serverConfig.getApiKey() : botConfig.getApiKey());
 
         try {
             client.mutePlayer(username, duration);

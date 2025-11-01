@@ -40,7 +40,7 @@ public class RemovePCommand implements Command {
             return;
         }
 
-        GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
+        GameServerClient client = new GameServerClient(serverConfig.getUrl(), serverConfig.getApiKey() != null ? serverConfig.getApiKey() : botConfig.getApiKey());
 
         try {
             client.removePlayerCount();

@@ -47,7 +47,7 @@ public class CheckPinCommand implements Command {
         String username = event.getOption("username").getAsString();
 
         // Create client and execute command
-        GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
+        GameServerClient client = new GameServerClient(serverConfig.getUrl(), serverConfig.getApiKey() != null ? serverConfig.getApiKey() : botConfig.getApiKey());
 
         try {
             Map<String, Object> response = client.checkPin(username);

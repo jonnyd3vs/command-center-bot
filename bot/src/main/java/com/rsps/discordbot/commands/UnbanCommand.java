@@ -43,7 +43,7 @@ public class UnbanCommand implements Command {
 
         String username = event.getOption("username").getAsString();
 
-        GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
+        GameServerClient client = new GameServerClient(serverConfig.getUrl(), serverConfig.getApiKey() != null ? serverConfig.getApiKey() : botConfig.getApiKey());
 
         try {
             client.unbanPlayer(username);

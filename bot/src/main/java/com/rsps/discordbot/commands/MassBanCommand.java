@@ -46,7 +46,7 @@ public class MassBanCommand implements Command {
         String playerName = event.getOption("player").getAsString();
 
         // Create client and execute command
-        GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
+        GameServerClient client = new GameServerClient(serverConfig.getUrl(), serverConfig.getApiKey() != null ? serverConfig.getApiKey() : botConfig.getApiKey());
 
         try {
             client.massBan(playerName);

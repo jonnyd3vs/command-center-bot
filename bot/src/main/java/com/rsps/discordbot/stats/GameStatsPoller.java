@@ -110,8 +110,9 @@ public class GameStatsPoller {
         EmbedBuilder embed;
 
         try {
-            // Create client and fetch stats
-            GameServerClient client = new GameServerClient(server.getUrl(), botConfig.getApiKey());
+            // Create client and fetch stats (use server-specific API key with fallback to global key)
+            String apiKey = server.getApiKey() != null ? server.getApiKey() : botConfig.getApiKey();
+            GameServerClient client = new GameServerClient(server.getUrl(), apiKey);
             Map<String, Object> stats = client.getStats();
             client.close();
 

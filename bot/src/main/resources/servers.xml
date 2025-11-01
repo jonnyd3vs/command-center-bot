@@ -8,5 +8,17 @@
         <channelId>1433696512814354522</channelId>
         <yellChannelId>1433760379258798161</yellChannelId>
         <statsChannelId>1434081291858477116</statsChannelId>
+        <apiKey>h9T2rV6qL8zE1aP4mC3sN0xW7yR5bG</apiKey>
+    </server>
+
+    <!-- VoidX Server - ACTIVE -->
+    <server>
+        <name>VoidX</name>
+        <host>54.39.68.229</host>
+        <port>9093</port>
+        <channelId>1434074829270548571</channelId>
+        <yellChannelId>1434074776196087888</yellChannelId>
+        <statsChannelId>1434085503329767467</statsChannelId>
+        <apiKey>qEzKhlpC88ZF3BY3AdUmwThjidxad8</apiKey>
     </server>
 </servers>

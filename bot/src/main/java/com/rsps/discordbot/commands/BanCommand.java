@@ -48,7 +48,7 @@ public class BanCommand implements Command {
         Integer duration = event.getOption("duration") != null ? event.getOption("duration").getAsInt() : 7; // Default 7 days
 
         // Create client and execute command
-        GameServerClient client = new GameServerClient(serverConfig.getUrl(), botConfig.getApiKey());
+        GameServerClient client = new GameServerClient(serverConfig.getUrl(), serverConfig.getApiKey() != null ? serverConfig.getApiKey() : botConfig.getApiKey());
 
         try {
             client.banPlayer(username, duration);
