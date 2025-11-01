@@ -16,3 +16,6 @@ command.prefix=!
 # To get role IDs: Right click role in Discord > Copy ID (requires Developer Mode)
 admin.role.id=
 moderator.role.id=
+manager.role.id=
+owner.role.id=
+developer.role.id=
