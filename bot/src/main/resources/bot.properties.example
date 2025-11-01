@@ -14,6 +14,7 @@ command.prefix=!
 # Discord role IDs for permissions (optional)
 # If not set, will use Discord permissions (Administrator, Manage Server)
 # To get role IDs: Right click role in Discord > Copy ID (requires Developer Mode)
+# Note: developer.role.id grants OWNER-level permissions (developers get everything owners do)
 admin.role.id=
 moderator.role.id=
 manager.role.id=

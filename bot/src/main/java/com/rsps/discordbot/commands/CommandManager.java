@@ -153,12 +153,8 @@ public class CommandManager extends ListenerAdapter {
                 return hasManagerRole(member) || hasOwnerRole(member) || member.isOwner();
 
             case OWNER:
-                // Owner commands work for: Owner, Developer
+                // Owner commands work for: Owner, Developer (developers get owner permissions)
                 return hasOwnerRole(member) || hasDeveloperRole(member) || member.isOwner();
-
-            case DEVELOPER:
-                // Developer commands work for: Developer only
-                return hasDeveloperRole(member) || member.isOwner();
 
             default:
                 return false;
