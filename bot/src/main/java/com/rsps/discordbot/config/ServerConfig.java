@@ -20,12 +20,21 @@ public class ServerConfig {
     private String host;
     private int port;
     private String channelId;  // Discord channel ID for this server
+    private boolean testingMode;  // Whether to use localhost override
 
     public ServerConfig(String name, String host, int port, String channelId) {
         this.name = name;
         this.host = host;
         this.port = port;
         this.channelId = channelId;
+        this.testingMode = false;
+    }
+
+    /**
+     * Enable testing mode (uses localhost instead of configured host)
+     */
+    public void setTestingMode(boolean testingMode) {
+        this.testingMode = testingMode;
     }
 
     public String getName() {
@@ -33,7 +42,8 @@ public class ServerConfig {
     }
 
     public String getHost() {
-        return host;
+        // In testing mode, override all hosts to localhost
+        return testingMode ? "localhost" : host;
     }
 
     public int getPort() {
@@ -45,7 +55,8 @@ public class ServerConfig {
     }
 
     public String getUrl() {
-        return "http://" + host + ":" + port;
+        // Use getHost() which respects testing mode
+        return "http://" + getHost() + ":" + port;
     }
 
     @Override

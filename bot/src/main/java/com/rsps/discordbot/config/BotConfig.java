@@ -136,4 +136,17 @@ public class BotConfig {
             return 8091;
         }
     }
+
+    /**
+     * Check if testing mode is enabled (connects to localhost instead of remote servers)
+     *
+     * @return true if testing mode is enabled
+     */
+    public boolean isTestingMode() {
+        String testingMode = properties.getProperty("testing.mode");
+        if (testingMode == null || testingMode.trim().isEmpty()) {
+            testingMode = System.getenv("TESTING_MODE");
+        }
+        return "true".equalsIgnoreCase(testingMode);
+    }
 }

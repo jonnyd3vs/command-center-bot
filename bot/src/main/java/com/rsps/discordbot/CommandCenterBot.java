@@ -39,6 +39,14 @@ public class CommandCenterBot {
             List<ServerConfig> servers = ServerConfig.loadServerConfigs();
             System.out.println("Loaded " + servers.size() + " server configuration(s)");
 
+            // Apply testing mode to all servers if enabled
+            if (botConfig.isTestingMode()) {
+                System.out.println("[TESTING MODE] Overriding all server hosts to localhost");
+                for (ServerConfig server : servers) {
+                    server.setTestingMode(true);
+                }
+            }
+
             // Build JDA instance first (needed for YellServer)
             jda = JDABuilder.createDefault(botConfig.getBotToken())
                     .setStatus(OnlineStatus.ONLINE)

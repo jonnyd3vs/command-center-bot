@@ -13,7 +13,11 @@ out/
 
 # Configuration files (contain secrets)
 bot.properties
+bot.properties.local
+*.properties.local
 src/main/resources/bot.properties
+servers.xml.new
+temp/
 
 # Log files
 logs/

@@ -43,7 +43,7 @@
     <!-- Fantasy Server -->
     <server>
         <name>Fantasy</name>
-        <host>localhost</host>
+        <host>148.113.171.18</host>
         <port>8090</port>
         <channelId>1433760379258798161</channelId>
     </server>
