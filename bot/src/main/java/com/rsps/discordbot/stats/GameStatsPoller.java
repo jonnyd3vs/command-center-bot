@@ -18,7 +18,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Polls game server statistics every 5 seconds and updates Discord messages
+ * Polls game server statistics with dynamic intervals based on uptime
+ * - Under 30 minutes uptime: updates every 10 seconds
+ * - Over 30 minutes uptime: updates every 60 seconds
+ * - Cleans up duplicate messages every hour
  */
 public class GameStatsPoller {
 
@@ -27,6 +30,8 @@ public class GameStatsPoller {
     private final List<ServerConfig> servers;  // Servers list with testing mode already applied
     private final ScheduledExecutorService scheduler;
     private final Map<String, String> statsMessageIds;  // Map of server name to message ID
+    private final Map<String, Long> lastUpdateTime;  // Map of server name to last update timestamp
+    private final Map<String, Long> serverUptimeSeconds;  // Map of server name to uptime in seconds
 
     public GameStatsPoller(JDA jda, BotConfig botConfig, List<ServerConfig> servers) {
         this.jda = jda;
@@ -34,6 +39,8 @@ public class GameStatsPoller {
         this.servers = servers;
         this.scheduler = Executors.newScheduledThreadPool(1);
         this.statsMessageIds = new HashMap<>();
+        this.lastUpdateTime = new HashMap<>();
+        this.serverUptimeSeconds = new HashMap<>();
     }
 
     /**
@@ -43,9 +50,15 @@ public class GameStatsPoller {
         // Clear old messages from stats channels on startup
         clearOldStatsMessages();
 
-        // Poll every 5 seconds
-        scheduler.scheduleAtFixedRate(this::updateAllServerStats, 0, 5, TimeUnit.SECONDS);
-        System.out.println("GameStatsPoller started - updating stats every 5 seconds");
+        // Poll every 10 seconds (fastest rate for servers with <30min uptime)
+        // Individual servers will only update based on their uptime threshold
+        scheduler.scheduleAtFixedRate(this::updateAllServerStats, 0, 10, TimeUnit.SECONDS);
+
+        // Schedule cleanup task to run every hour
+        scheduler.scheduleAtFixedRate(this::cleanupDuplicateMessages, 1, 1, TimeUnit.HOURS);
+
+        System.out.println("GameStatsPoller started - checking every 10s (dynamic update intervals based on uptime)");
+        System.out.println("Message cleanup scheduled every 1 hour");
     }
 
     /**
@@ -75,6 +88,47 @@ public class GameStatsPoller {
     }
 
     /**
+     * Cleanup duplicate messages in stats channels (runs every hour)
+     * Keeps only the most recent message (the one being actively updated)
+     */
+    private void cleanupDuplicateMessages() {
+        System.out.println("[Stats Cleanup] Running hourly cleanup of duplicate messages...");
+        for (ServerConfig server : servers) {
+            if (server.getStatsChannelId() != null && !server.getStatsChannelId().trim().isEmpty()) {
+                TextChannel statsChannel = jda.getTextChannelById(server.getStatsChannelId());
+                if (statsChannel != null) {
+                    try {
+                        String currentMessageId = statsMessageIds.get(server.getName());
+
+                        // Get all messages in the channel
+                        List<Message> messages = statsChannel.getIterableHistory().complete();
+
+                        int deletedCount = 0;
+                        for (Message message : messages) {
+                            // Delete all messages except the current one being updated
+                            if (currentMessageId == null || !message.getId().equals(currentMessageId)) {
+                                try {
+                                    message.delete().complete();
+                                    deletedCount++;
+                                } catch (Exception e) {
+                                    System.err.println("[Stats Cleanup] Failed to delete message: " + e.getMessage());
+                                }
+                            }
+                        }
+
+                        if (deletedCount > 0) {
+                            System.out.println("[Stats Cleanup] Deleted " + deletedCount + " old message(s) from " + server.getName() + " stats channel");
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[Stats Cleanup] Error cleaning up messages for " + server.getName() + ": " + e.getMessage());
+                    }
+                }
+            }
+        }
+        System.out.println("[Stats Cleanup] Cleanup completed");
+    }
+
+    /**
      * Stop the stats polling service
      */
     public void stop() {
@@ -96,6 +150,9 @@ public class GameStatsPoller {
 
     /**
      * Update stats for a specific server
+     * Uses dynamic intervals based on uptime:
+     * - Under 30 minutes: update every 10 seconds
+     * - Over 30 minutes: update every 60 seconds
      *
      * @param server The server configuration
      */
@@ -108,6 +165,7 @@ public class GameStatsPoller {
         }
 
         EmbedBuilder embed;
+        long currentUptimeSeconds = 0;
 
         try {
             // Create client and fetch stats (use server-specific API key with fallback to global key)
@@ -115,6 +173,28 @@ public class GameStatsPoller {
             GameServerClient client = new GameServerClient(server.getUrl(), apiKey);
             Map<String, Object> stats = client.getStats();
             client.close();
+
+            // Parse uptime to determine update interval
+            String uptimeStr = getStringStat(stats, "uptime");
+            currentUptimeSeconds = parseUptimeToSeconds(uptimeStr);
+            serverUptimeSeconds.put(server.getName(), currentUptimeSeconds);
+
+            // Check if enough time has passed since last update
+            long currentTime = System.currentTimeMillis();
+            Long lastUpdate = lastUpdateTime.get(server.getName());
+
+            // Determine required interval based on uptime
+            // Under 30 minutes (1800 seconds) = 10 second updates
+            // Over 30 minutes = 60 second updates
+            long requiredIntervalMs = (currentUptimeSeconds < 1800) ? 10_000 : 60_000;
+
+            if (lastUpdate != null && (currentTime - lastUpdate) < requiredIntervalMs) {
+                // Not enough time has passed, skip this update
+                return;
+            }
+
+            // Update the last update time
+            lastUpdateTime.put(server.getName(), currentTime);
 
             // Build the stats embed
             embed = buildStatsEmbed(server.getName(), stats);
@@ -265,5 +345,53 @@ public class GameStatsPoller {
             return value.toString();
         }
         return null;
+    }
+
+    /**
+     * Parse uptime string to total seconds
+     * Formats supported: "5m 23s", "1h 15m 30s", "2d 3h 45m 10s"
+     *
+     * @param uptimeStr The uptime string from server stats
+     * @return Total uptime in seconds
+     */
+    private long parseUptimeToSeconds(String uptimeStr) {
+        if (uptimeStr == null || uptimeStr.trim().isEmpty()) {
+            return 0;
+        }
+
+        long totalSeconds = 0;
+        try {
+            // Parse days
+            if (uptimeStr.contains("d")) {
+                String[] parts = uptimeStr.split("d");
+                totalSeconds += Long.parseLong(parts[0].trim()) * 86400; // 24 * 60 * 60
+                uptimeStr = parts.length > 1 ? parts[1] : "";
+            }
+
+            // Parse hours
+            if (uptimeStr.contains("h")) {
+                String[] parts = uptimeStr.split("h");
+                totalSeconds += Long.parseLong(parts[0].trim()) * 3600; // 60 * 60
+                uptimeStr = parts.length > 1 ? parts[1] : "";
+            }
+
+            // Parse minutes
+            if (uptimeStr.contains("m")) {
+                String[] parts = uptimeStr.split("m");
+                totalSeconds += Long.parseLong(parts[0].trim()) * 60;
+                uptimeStr = parts.length > 1 ? parts[1] : "";
+            }
+
+            // Parse seconds
+            if (uptimeStr.contains("s")) {
+                String[] parts = uptimeStr.split("s");
+                totalSeconds += Long.parseLong(parts[0].trim());
+            }
+        } catch (Exception e) {
+            System.err.println("[Stats] Error parsing uptime string '" + uptimeStr + "': " + e.getMessage());
+            return 0;
+        }
+
+        return totalSeconds;
     }
 }
