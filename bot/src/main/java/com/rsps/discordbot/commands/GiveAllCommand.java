@@ -40,7 +40,7 @@ public class GiveAllCommand implements Command {
 
         if (serverConfig == null) {
             event.getHook().sendMessageEmbeds(createErrorEmbed(
-                "This command can only be used in server-specific channels (Fantasy, VoidX, or Kingdom)."
+                "This command can only be used in server-specific channels (Fantasy, VoidX, or Vale)."
             )).queue();
             return;
         }

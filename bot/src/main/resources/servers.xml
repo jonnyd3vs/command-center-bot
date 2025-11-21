@@ -22,14 +22,25 @@
         <apiKey>qEzKhlpC88ZF3BY3AdUmwThjidxad8</apiKey>
     </server>
 
-    <!-- Kingdom Server - ACTIVE -->
+    <!-- Vale Server - ACTIVE -->
     <server>
-        <name>Kingdom</name>
-        <host>54.39.68.229</host>
+        <name>Vale</name>
+        <host>15.235.0.179</host>
         <port>9094</port>
         <channelId>1434074790510989352</channelId>
         <yellChannelId>1434074562890563645</yellChannelId>
         <statsChannelId>1434084444293173269</statsChannelId>
         <apiKey>LIsjhB4BmjtkEcmH93iqqI8SqdfDX4</apiKey>
+    </server>
+
+    <!-- Azerite Server - ACTIVE -->
+    <server>
+        <name>Azerite</name>
+        <host>144.217.65.144</host>
+        <port>9094</port>
+        <channelId>1433696582288674836</channelId>
+        <yellChannelId>1433760347428491436</yellChannelId>
+        <statsChannelId>1434081139416629349</statsChannelId>
+        <apiKey>E9z1vMdBI5eTXX</apiKey>
     </server>
 </servers>
